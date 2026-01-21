@@ -14,14 +14,13 @@ export function ExpenseForm({ categories, decisionLogs, today, onCheck, disabled
   const [amount, setAmount] = useState('');
   const [categoryId, setCategoryId] = useState('');
 
-  const defaultQuickAmounts = [100, 500, 1000, 2000];
-
   const quickAmounts = useMemo(() => {
-    if (!categoryId) return defaultQuickAmounts;
+    const defaultAmounts = [100, 500, 1000, 2000];
+    if (!categoryId) return defaultAmounts;
     const categoryLogs = decisionLogs.filter(
       (l) => l.categoryId === categoryId && l.action === 'BOUGHT'
     );
-    if (categoryLogs.length === 0) return defaultQuickAmounts;
+    if (categoryLogs.length === 0) return defaultAmounts;
     const counts = categoryLogs.reduce((acc, l) => {
       acc[l.amount] = (acc[l.amount] || 0) + 1;
       return acc;
@@ -30,7 +29,7 @@ export function ExpenseForm({ categories, decisionLogs, today, onCheck, disabled
       .sort((a, b) => b[1] - a[1])
       .slice(0, 4)
       .map(([amt]) => Number(amt));
-    return fromHistory.length > 0 ? fromHistory : defaultQuickAmounts;
+    return fromHistory.length > 0 ? fromHistory : defaultAmounts;
   }, [decisionLogs, categoryId]);
 
   const preview = useMemo(() => {
