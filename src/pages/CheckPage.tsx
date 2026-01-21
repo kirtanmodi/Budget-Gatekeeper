@@ -120,12 +120,6 @@ export function CheckPage() {
     year: 'numeric',
   });
 
-  const summary = useMemo(() => {
-    const bought = decisionLogs.filter((l) => l.action === 'BOUGHT').length;
-    const skipped = decisionLogs.filter((l) => l.action === 'SKIPPED').length;
-    return { total: decisionLogs.length, bought, skipped };
-  }, [decisionLogs]);
-
   return (
     <div className="flex flex-col min-h-screen pb-20 px-4 pt-6">
       <div className="mb-6">
@@ -133,11 +127,6 @@ export function CheckPage() {
         <p className="text-sm text-gray-500 mt-1">
           {formattedDate} — Day {currentDay} of {daysInMonth}
         </p>
-        {summary.total > 0 && (
-          <p className="text-xs text-gray-400 mt-1">
-            {summary.total} check{summary.total !== 1 ? 's' : ''} · {summary.bought} bought · {summary.skipped} skipped
-          </p>
-        )}
       </div>
 
       {flowState === 'input' && (

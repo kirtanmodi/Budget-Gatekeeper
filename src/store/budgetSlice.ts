@@ -144,9 +144,36 @@ const budgetSlice = createSlice({
       state.decisionLogs = [];
       state.currentSnapshot = null;
     },
+
+    updateTransaction: (
+      state,
+      action: PayloadAction<{ id: string; newAmount: number }>
+    ) => {
+      const { id, newAmount } = action.payload;
+      const log = state.decisionLogs.find((l) => l.id === id);
+      if (log && log.action === 'BOUGHT') {
+        const category = state.categories.find((c) => c.id === log.categoryId);
+        if (category) {
+          category.currentSpent = category.currentSpent - log.amount + newAmount;
+        }
+        log.amount = newAmount;
+      }
+    },
+
+    deleteTransaction: (state, action: PayloadAction<string>) => {
+      const id = action.payload;
+      const log = state.decisionLogs.find((l) => l.id === id);
+      if (log && log.action === 'BOUGHT') {
+        const category = state.categories.find((c) => c.id === log.categoryId);
+        if (category) {
+          category.currentSpent -= log.amount;
+        }
+      }
+      state.decisionLogs = state.decisionLogs.filter((l) => l.id !== id);
+    },
   },
 });
 
-export const { logDecision, setSpent, updateBudget, startNewMonth, syncToday, resetAllSpent, resetToDefaults } =
+export const { logDecision, setSpent, updateBudget, startNewMonth, syncToday, resetAllSpent, resetToDefaults, updateTransaction, deleteTransaction } =
   budgetSlice.actions;
 export default budgetSlice.reducer;

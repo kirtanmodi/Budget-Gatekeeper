@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import { useAppDispatch } from './store/hooks';
 import { syncToday } from './store/budgetSlice';
 import { CheckPage } from './pages/CheckPage';
+import { TransactionsPage } from './pages/TransactionsPage';
 import { AdjustSpendPage } from './pages/AdjustSpendPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { NavBar } from './components/NavBar';
@@ -34,6 +35,7 @@ function App() {
     <div className="min-h-screen bg-white">
       <Routes>
         <Route path="/" element={<CheckPage />} />
+        <Route path="/transactions" element={<TransactionsPage />} />
         <Route path="/adjust" element={<AdjustSpendPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Routes>
