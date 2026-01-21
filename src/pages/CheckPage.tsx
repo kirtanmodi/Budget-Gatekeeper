@@ -42,6 +42,19 @@ export function CheckPage() {
     );
   }, [selectedCategory, currentDay, daysInMonth]);
 
+  const waitContext = useMemo(() => {
+    if (!decision || decision.type !== 'WAIT' || !selectedCategory) return undefined;
+    const buyDay = currentDay + decision.days;
+    const daysLeftAfterPurchase = Math.max(1, daysInMonth - buyDay);
+    const weeksLeftAfterPurchase = Math.max(1, Math.ceil(daysLeftAfterPurchase / 7));
+    const remainingAfterPurchase = selectedCategory.monthlyBudget - selectedCategory.currentSpent - amount;
+    return {
+      remainingAfterPurchase,
+      daysLeftAfterPurchase,
+      weeksLeftAfterPurchase,
+    };
+  }, [decision, selectedCategory, currentDay, daysInMonth, amount]);
+
   const handleCheck = (categoryId: string, checkAmount: number) => {
     setSelectedCategoryId(categoryId);
     setAmount(checkAmount);
@@ -147,7 +160,7 @@ export function CheckPage() {
 
           <ContextMessage context={context} categoryName={selectedCategory.name} />
 
-          <DecisionResult decision={decision} today={today} />
+          <DecisionResult decision={decision} today={today} waitContext={waitContext} />
 
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
             <p className="text-sm text-gray-500 mb-2 text-center">If you buy this</p>
