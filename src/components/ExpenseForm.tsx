@@ -14,19 +14,23 @@ export function ExpenseForm({ categories, decisionLogs, today, onCheck, disabled
   const [amount, setAmount] = useState('');
   const [categoryId, setCategoryId] = useState('');
 
+  const defaultQuickAmounts = [100, 500, 1000, 2000];
+
   const quickAmounts = useMemo(() => {
-    if (!categoryId) return [];
+    if (!categoryId) return defaultQuickAmounts;
     const categoryLogs = decisionLogs.filter(
       (l) => l.categoryId === categoryId && l.action === 'BOUGHT'
     );
+    if (categoryLogs.length === 0) return defaultQuickAmounts;
     const counts = categoryLogs.reduce((acc, l) => {
       acc[l.amount] = (acc[l.amount] || 0) + 1;
       return acc;
     }, {} as Record<number, number>);
-    return Object.entries(counts)
+    const fromHistory = Object.entries(counts)
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 3)
+      .slice(0, 4)
       .map(([amt]) => Number(amt));
+    return fromHistory.length > 0 ? fromHistory : defaultQuickAmounts;
   }, [decisionLogs, categoryId]);
 
   const preview = useMemo(() => {
@@ -89,20 +93,18 @@ export function ExpenseForm({ categories, decisionLogs, today, onCheck, disabled
             className="w-full pl-10 pr-4 py-4 text-2xl border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent disabled:bg-gray-100"
           />
         </div>
-        {quickAmounts.length > 0 && (
-          <div className="flex gap-2 mt-2">
-            {quickAmounts.map((amt) => (
-              <button
-                key={amt}
-                type="button"
-                onClick={() => handleQuickAmount(amt)}
-                className="px-3 py-2 text-sm bg-gray-100 rounded-lg active:bg-gray-200 min-h-[44px]"
-              >
-                ₹{amt.toLocaleString('en-IN')}
-              </button>
-            ))}
-          </div>
-        )}
+        <div className="flex flex-wrap gap-2 mt-2">
+          {quickAmounts.map((amt) => (
+            <button
+              key={amt}
+              type="button"
+              onClick={() => handleQuickAmount(amt)}
+              className="px-3 py-2 text-sm bg-gray-100 rounded-lg active:bg-gray-200 min-h-[44px]"
+            >
+              ₹{amt.toLocaleString('en-IN')}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="flex flex-col gap-2">
