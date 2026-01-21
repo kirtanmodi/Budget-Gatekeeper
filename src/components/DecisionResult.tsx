@@ -4,6 +4,7 @@ interface WaitContext {
   remainingAfterPurchase: number;
   daysLeftAfterPurchase: number;
   weeksLeftAfterPurchase: number;
+  currentDailyRate: number;
 }
 
 interface DecisionResultProps {
@@ -40,14 +41,28 @@ export function DecisionResult({ decision, today, waitContext }: DecisionResultP
           Buy on {formattedBuyDate}
         </span>
         {waitContext && (
-          <p className="text-sm text-gray-600 mt-4 text-center">
-            You'll have{' '}
-            <span className="font-semibold">
-              ₹{Math.round(waitContext.remainingAfterPurchase).toLocaleString('en-IN')}
-            </span>{' '}
-            left for {waitContext.daysLeftAfterPurchase} day{waitContext.daysLeftAfterPurchase !== 1 ? 's' : ''}{' '}
-            ({waitContext.weeksLeftAfterPurchase} week{waitContext.weeksLeftAfterPurchase !== 1 ? 's' : ''})
-          </p>
+          <div className="mt-4 text-center">
+            <p className="text-sm text-gray-600">
+              You'll have{' '}
+              <span className="font-semibold">
+                ₹{Math.round(waitContext.remainingAfterPurchase).toLocaleString('en-IN')}
+              </span>{' '}
+              left for {waitContext.daysLeftAfterPurchase} day{waitContext.daysLeftAfterPurchase !== 1 ? 's' : ''}{' '}
+              ({waitContext.weeksLeftAfterPurchase} week{waitContext.weeksLeftAfterPurchase !== 1 ? 's' : ''})
+            </p>
+            {(() => {
+              const improvedDailyRate = waitContext.remainingAfterPurchase / waitContext.daysLeftAfterPurchase;
+              const improvement = improvedDailyRate - waitContext.currentDailyRate;
+              if (improvement > 0) {
+                return (
+                  <p className="text-xs text-green-700 mt-2">
+                    ₹{Math.round(improvedDailyRate).toLocaleString('en-IN')}/day vs ₹{Math.round(waitContext.currentDailyRate).toLocaleString('en-IN')}/day if you buy today
+                  </p>
+                );
+              }
+              return null;
+            })()}
+          </div>
         )}
       </div>
     );

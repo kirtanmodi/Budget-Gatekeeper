@@ -37,6 +37,9 @@ export interface BudgetState {
   decisionLogs: DecisionLog[];
   archivedLogs: DecisionLog[];
   system: SystemState;
+  lastUsedCategoryId: string | null;
+  skipStreak: number;
+  totalSavedThisMonth: number;
 }
 
 export type Decision =

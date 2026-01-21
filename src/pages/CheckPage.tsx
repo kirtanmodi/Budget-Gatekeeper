@@ -1,11 +1,13 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useCallback } from 'react';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
-import { logDecision } from '../store/budgetSlice';
+import { logDecision, setLastUsedCategory, undoLastDecision } from '../store/budgetSlice';
 import { ExpenseForm } from '../components/ExpenseForm';
 import { ContextMessage } from '../components/ContextMessage';
 import { DecisionResult } from '../components/DecisionResult';
 import { PostDecisionActions } from '../components/PostDecisionActions';
+import { UndoToast } from '../components/UndoToast';
 import { calculateDecision, calculateContext, getDaysInMonth } from '../engine/decision';
+import { triggerHaptic } from '../utils/haptics';
 import type { Decision } from '../types';
 
 type FlowState = 'input' | 'result';
@@ -15,11 +17,14 @@ export function CheckPage() {
   const categories = useAppSelector((state) => state.budget.categories);
   const decisionLogs = useAppSelector((state) => state.budget.decisionLogs);
   const today = useAppSelector((state) => state.budget.system.today);
+  const lastUsedCategoryId = useAppSelector((state) => state.budget.lastUsedCategoryId);
 
   const [flowState, setFlowState] = useState<FlowState>('input');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [amount, setAmount] = useState<number>(0);
   const [decision, setDecision] = useState<Decision | null>(null);
+  const [showUndo, setShowUndo] = useState(false);
+  const [undoMessage, setUndoMessage] = useState('');
 
   const touchStartX = useRef<number>(0);
 
@@ -48,10 +53,13 @@ export function CheckPage() {
     const daysLeftAfterPurchase = Math.max(1, daysInMonth - buyDay);
     const weeksLeftAfterPurchase = Math.max(1, Math.ceil(daysLeftAfterPurchase / 7));
     const remainingAfterPurchase = selectedCategory.monthlyBudget - selectedCategory.currentSpent - amount;
+    const daysLeftToday = Math.max(1, daysInMonth - currentDay);
+    const currentDailyRate = (selectedCategory.monthlyBudget - selectedCategory.currentSpent - amount) / daysLeftToday;
     return {
       remainingAfterPurchase,
       daysLeftAfterPurchase,
       weeksLeftAfterPurchase,
+      currentDailyRate,
     };
   }, [decision, selectedCategory, currentDay, daysInMonth, amount]);
 
@@ -72,10 +80,22 @@ export function CheckPage() {
 
     setDecision(result);
     setFlowState('result');
+
+    dispatch(setLastUsedCategory(categoryId));
+
+    if (result.type === 'YES') {
+      triggerHaptic('success');
+    } else if (result.type === 'WAIT') {
+      triggerHaptic('warning');
+    } else {
+      triggerHaptic('error');
+    }
   };
 
   const handleBought = () => {
     if (!selectedCategoryId || !decision) return;
+
+    const categoryName = categories.find((c) => c.id === selectedCategoryId)?.name || '';
 
     dispatch(
       logDecision({
@@ -87,11 +107,15 @@ export function CheckPage() {
       })
     );
 
+    setUndoMessage(`Bought ₹${amount.toLocaleString('en-IN')} in ${categoryName}`);
+    setShowUndo(true);
     resetFlow();
   };
 
   const handleSkipped = () => {
     if (!selectedCategoryId || !decision) return;
+
+    const categoryName = categories.find((c) => c.id === selectedCategoryId)?.name || '';
 
     dispatch(
       logDecision({
@@ -103,8 +127,19 @@ export function CheckPage() {
       })
     );
 
+    setUndoMessage(`Skipped ₹${amount.toLocaleString('en-IN')} in ${categoryName}`);
+    setShowUndo(true);
     resetFlow();
   };
+
+  const handleUndo = useCallback(() => {
+    dispatch(undoLastDecision());
+    setShowUndo(false);
+  }, [dispatch]);
+
+  const handleUndoDismiss = useCallback(() => {
+    setShowUndo(false);
+  }, []);
 
   const resetFlow = () => {
     setFlowState('input');
@@ -143,7 +178,13 @@ export function CheckPage() {
       </div>
 
       {flowState === 'input' && (
-        <ExpenseForm categories={categories} decisionLogs={decisionLogs} today={today} onCheck={handleCheck} />
+        <ExpenseForm
+          categories={categories}
+          decisionLogs={decisionLogs}
+          today={today}
+          onCheck={handleCheck}
+          lastUsedCategoryId={lastUsedCategoryId}
+        />
       )}
 
       {flowState === 'result' && selectedCategory && context && decision && (
@@ -194,6 +235,14 @@ export function CheckPage() {
             Start Over
           </button>
         </div>
+      )}
+
+      {showUndo && (
+        <UndoToast
+          message={undoMessage}
+          onUndo={handleUndo}
+          onDismiss={handleUndoDismiss}
+        />
       )}
     </div>
   );

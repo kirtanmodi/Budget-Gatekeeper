@@ -8,11 +8,12 @@ interface ExpenseFormProps {
   today: string;
   onCheck: (categoryId: string, amount: number) => void;
   disabled?: boolean;
+  lastUsedCategoryId?: string | null;
 }
 
-export function ExpenseForm({ categories, decisionLogs, today, onCheck, disabled }: ExpenseFormProps) {
+export function ExpenseForm({ categories, decisionLogs, today, onCheck, disabled, lastUsedCategoryId }: ExpenseFormProps) {
   const [amount, setAmount] = useState('');
-  const [categoryId, setCategoryId] = useState('');
+  const [categoryId, setCategoryId] = useState(lastUsedCategoryId || '');
 
   const quickAmounts = useMemo(() => {
     const defaultAmounts = [100, 500, 1000, 2000, 5000];

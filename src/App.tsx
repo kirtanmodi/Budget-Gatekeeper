@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { useAppDispatch } from './store/hooks';
 import { syncToday } from './store/budgetSlice';
+import { DashboardPage } from './pages/DashboardPage';
 import { CheckPage } from './pages/CheckPage';
 import { TransactionsPage } from './pages/TransactionsPage';
 import { AdjustSpendPage } from './pages/AdjustSpendPage';
@@ -35,6 +36,7 @@ function App() {
     <div className="min-h-screen bg-white">
       <Routes>
         <Route path="/" element={<CheckPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/transactions" element={<TransactionsPage />} />
         <Route path="/adjust" element={<AdjustSpendPage />} />
         <Route path="/settings" element={<SettingsPage />} />

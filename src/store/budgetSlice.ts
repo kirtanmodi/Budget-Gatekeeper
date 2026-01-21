@@ -14,6 +14,9 @@ const initialState: BudgetState = {
   system: {
     today: getInitialToday(),
   },
+  lastUsedCategoryId: null,
+  skipStreak: 0,
+  totalSavedThisMonth: 0,
 };
 
 const budgetSlice = createSlice({
@@ -47,7 +50,32 @@ const budgetSlice = createSlice({
         if (category) {
           category.currentSpent += amount;
         }
+        state.skipStreak = 0;
+      } else {
+        state.skipStreak += 1;
+        state.totalSavedThisMonth += amount;
       }
+    },
+
+    setLastUsedCategory: (state, action: PayloadAction<string>) => {
+      state.lastUsedCategoryId = action.payload;
+    },
+
+    undoLastDecision: (state) => {
+      const lastLog = state.decisionLogs[state.decisionLogs.length - 1];
+      if (!lastLog) return;
+
+      if (lastLog.action === 'BOUGHT') {
+        const category = state.categories.find((c) => c.id === lastLog.categoryId);
+        if (category) {
+          category.currentSpent -= lastLog.amount;
+        }
+      } else {
+        state.skipStreak = Math.max(0, state.skipStreak - 1);
+        state.totalSavedThisMonth = Math.max(0, state.totalSavedThisMonth - lastLog.amount);
+      }
+
+      state.decisionLogs.pop();
     },
 
     setSpent: (
@@ -109,6 +137,8 @@ const budgetSlice = createSlice({
         state.categories.forEach((category) => {
           category.currentSpent = 0;
         });
+        state.skipStreak = 0;
+        state.totalSavedThisMonth = 0;
         state.currentSnapshot = {
           month: newDate.getMonth(),
           year: newDate.getFullYear(),
@@ -174,6 +204,6 @@ const budgetSlice = createSlice({
   },
 });
 
-export const { logDecision, setSpent, updateBudget, startNewMonth, syncToday, resetAllSpent, resetToDefaults, updateTransaction, deleteTransaction } =
+export const { logDecision, setSpent, updateBudget, startNewMonth, syncToday, resetAllSpent, resetToDefaults, updateTransaction, deleteTransaction, setLastUsedCategory, undoLastDecision } =
   budgetSlice.actions;
 export default budgetSlice.reducer;
