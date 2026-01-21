@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { useAppSelector } from '../store/hooks';
 import { getDaysInMonth, getZone, type Zone } from '../engine/decision';
-import { StreakBanner } from '../components/StreakBanner';
 
 const zoneLabels: Record<Zone, string> = {
   FREE: 'Free Zone',
@@ -18,9 +17,6 @@ const zoneStyles: Record<Zone, { badge: string; bar: string }> = {
 export function DashboardPage() {
   const categories = useAppSelector((state) => state.budget.categories);
   const today = useAppSelector((state) => state.budget.system.today);
-  const skipStreak = useAppSelector((state) => state.budget.skipStreak);
-  const totalSavedThisMonth = useAppSelector((state) => state.budget.totalSavedThisMonth);
-
   const todayDate = useMemo(() => new Date(today), [today]);
   const currentDay = todayDate.getDate();
   const daysInMonth = getDaysInMonth(todayDate.getFullYear(), todayDate.getMonth());
@@ -44,8 +40,6 @@ export function DashboardPage() {
           {formattedDate} — {daysLeft} day{daysLeft !== 1 ? 's' : ''} left
         </p>
       </div>
-
-      <StreakBanner skipStreak={skipStreak} totalSaved={totalSavedThisMonth} />
 
       <div className="bg-gray-100 rounded-lg p-4 mb-6">
         <div className="grid grid-cols-3 gap-4 text-center">
