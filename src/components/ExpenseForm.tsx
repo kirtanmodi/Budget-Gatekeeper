@@ -15,7 +15,7 @@ export function ExpenseForm({ categories, decisionLogs, today, onCheck, disabled
   const [categoryId, setCategoryId] = useState('');
 
   const quickAmounts = useMemo(() => {
-    const defaultAmounts = [100, 500, 1000, 2000];
+    const defaultAmounts = [100, 500, 1000, 2000, 5000];
     if (!categoryId) return defaultAmounts;
     const categoryLogs = decisionLogs.filter(
       (l) => l.categoryId === categoryId && l.action === 'BOUGHT'

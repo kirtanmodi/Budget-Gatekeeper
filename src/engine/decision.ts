@@ -23,7 +23,14 @@ export function calculateDecision(
   }
 
   if (total <= categoryBudget) {
-    const requiredDay = Math.ceil(total / dailyAllowance);
+    const remainingAfterPurchase = categoryBudget - total;
+    const minPostPurchaseRate = dailyAllowance * 0.5;
+    const maxDaysCanSupport = remainingAfterPurchase / minPostPurchaseRate;
+    const earliestBuyDay = Math.ceil(daysInMonth - maxDaysCanSupport);
+    const requiredDay = Math.max(
+      earliestBuyDay,
+      Math.ceil(total / dailyAllowance)
+    );
     const waitDays = Math.max(0, requiredDay - currentDay);
     return { type: 'WAIT', days: waitDays };
   }

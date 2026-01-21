@@ -24,6 +24,7 @@ export function ContextMessage({ context, categoryName }: ContextMessageProps) {
 
   return (
     <div className="bg-gray-100 rounded-lg p-4 text-sm text-gray-700">
+      <p className="text-xs text-gray-500 mb-2">Current status (before this purchase)</p>
       <div className="flex items-center justify-between mb-3">
         <p className="font-medium text-gray-900">{categoryName}</p>
         <span className={`px-2 py-1 text-xs font-medium rounded ${zoneStyles[zone]}`}>
