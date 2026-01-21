@@ -1,15 +1,57 @@
-import { useState } from 'react';
-import type { Category } from '../types';
+import { useState, useMemo } from 'react';
+import type { Category, DecisionLog } from '../types';
+import { calculateDecision, getDaysInMonth } from '../engine/decision';
 
 interface ExpenseFormProps {
   categories: Category[];
+  decisionLogs: DecisionLog[];
+  today: string;
   onCheck: (categoryId: string, amount: number) => void;
   disabled?: boolean;
 }
 
-export function ExpenseForm({ categories, onCheck, disabled }: ExpenseFormProps) {
+export function ExpenseForm({ categories, decisionLogs, today, onCheck, disabled }: ExpenseFormProps) {
   const [amount, setAmount] = useState('');
   const [categoryId, setCategoryId] = useState('');
+
+  const quickAmounts = useMemo(() => {
+    if (!categoryId) return [];
+    const categoryLogs = decisionLogs.filter(
+      (l) => l.categoryId === categoryId && l.action === 'BOUGHT'
+    );
+    const counts = categoryLogs.reduce((acc, l) => {
+      acc[l.amount] = (acc[l.amount] || 0) + 1;
+      return acc;
+    }, {} as Record<number, number>);
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([amt]) => Number(amt));
+  }, [decisionLogs, categoryId]);
+
+  const preview = useMemo(() => {
+    const numAmount = parseFloat(amount);
+    if (!categoryId || !numAmount || numAmount <= 0) return null;
+    const category = categories.find((c) => c.id === categoryId);
+    if (!category) return null;
+    const todayDate = new Date(today);
+    const currentDay = todayDate.getDate();
+    const daysInMonth = getDaysInMonth(todayDate.getFullYear(), todayDate.getMonth());
+    const decision = calculateDecision(
+      category.monthlyBudget,
+      category.currentSpent,
+      numAmount,
+      currentDay,
+      daysInMonth
+    );
+    if (decision.type === 'YES') return 'YES';
+    if (decision.type === 'WAIT') return `WAIT ${decision.days}d`;
+    return 'NO';
+  }, [amount, categoryId, categories, today]);
+
+  const handleQuickAmount = (amt: number) => {
+    setAmount(amt.toString());
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,6 +89,20 @@ export function ExpenseForm({ categories, onCheck, disabled }: ExpenseFormProps)
             className="w-full pl-10 pr-4 py-4 text-2xl border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent disabled:bg-gray-100"
           />
         </div>
+        {quickAmounts.length > 0 && (
+          <div className="flex gap-2 mt-2">
+            {quickAmounts.map((amt) => (
+              <button
+                key={amt}
+                type="button"
+                onClick={() => handleQuickAmount(amt)}
+                className="px-3 py-2 text-sm bg-gray-100 rounded-lg active:bg-gray-200 min-h-[44px]"
+              >
+                ₹{amt.toLocaleString('en-IN')}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col gap-2">
@@ -69,13 +125,28 @@ export function ExpenseForm({ categories, onCheck, disabled }: ExpenseFormProps)
         </select>
       </div>
 
-      <button
-        type="submit"
-        disabled={!isValid || disabled}
-        className="w-full py-4 text-lg font-semibold bg-gray-900 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed active:bg-gray-800 min-h-[56px]"
-      >
-        Check
-      </button>
+      <div className="flex items-center gap-3">
+        <button
+          type="submit"
+          disabled={!isValid || disabled}
+          className="flex-1 py-4 text-lg font-semibold bg-gray-900 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed active:bg-gray-800 min-h-[56px]"
+        >
+          Check
+        </button>
+        {preview && (
+          <span
+            className={`px-3 py-2 text-sm font-semibold rounded-lg ${
+              preview === 'YES'
+                ? 'bg-green-100 text-green-800'
+                : preview === 'NO'
+                ? 'bg-red-100 text-red-800'
+                : 'bg-yellow-100 text-yellow-800'
+            }`}
+          >
+            {preview}
+          </span>
+        )}
+      </div>
     </form>
   );
 }

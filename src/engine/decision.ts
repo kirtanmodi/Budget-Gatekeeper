@@ -59,3 +59,13 @@ export function calculateContext(
 export function getDaysInMonth(year: number, month: number): number {
   return new Date(year, month + 1, 0).getDate();
 }
+
+export type Zone = 'FREE' | 'CONTROL' | 'STOP';
+
+export function getZone(spent: number, budget: number): Zone {
+  if (budget <= 0) return 'STOP';
+  const percent = (spent / budget) * 100;
+  if (percent <= 80) return 'FREE';
+  if (percent <= 100) return 'CONTROL';
+  return 'STOP';
+}

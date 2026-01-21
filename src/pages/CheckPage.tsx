@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { logDecision } from '../store/budgetSlice';
 import { ExpenseForm } from '../components/ExpenseForm';
@@ -13,12 +13,15 @@ type FlowState = 'input' | 'result';
 export function CheckPage() {
   const dispatch = useAppDispatch();
   const categories = useAppSelector((state) => state.budget.categories);
+  const decisionLogs = useAppSelector((state) => state.budget.decisionLogs);
   const today = useAppSelector((state) => state.budget.system.today);
 
   const [flowState, setFlowState] = useState<FlowState>('input');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [amount, setAmount] = useState<number>(0);
   const [decision, setDecision] = useState<Decision | null>(null);
+
+  const touchStartX = useRef<number>(0);
 
   const todayDate = useMemo(() => new Date(today), [today]);
   const currentDay = todayDate.getDate();
@@ -97,12 +100,31 @@ export function CheckPage() {
     setDecision(null);
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const delta = e.changedTouches[0].clientX - touchStartX.current;
+    if (delta > 100) {
+      handleBought();
+    } else if (delta < -100) {
+      handleSkipped();
+    }
+  };
+
   const formattedDate = todayDate.toLocaleDateString('en-IN', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   });
+
+  const summary = useMemo(() => {
+    const bought = decisionLogs.filter((l) => l.action === 'BOUGHT').length;
+    const skipped = decisionLogs.filter((l) => l.action === 'SKIPPED').length;
+    return { total: decisionLogs.length, bought, skipped };
+  }, [decisionLogs]);
 
   return (
     <div className="flex flex-col min-h-screen pb-20 px-4 pt-6">
@@ -111,14 +133,23 @@ export function CheckPage() {
         <p className="text-sm text-gray-500 mt-1">
           {formattedDate} — Day {currentDay} of {daysInMonth}
         </p>
+        {summary.total > 0 && (
+          <p className="text-xs text-gray-400 mt-1">
+            {summary.total} check{summary.total !== 1 ? 's' : ''} · {summary.bought} bought · {summary.skipped} skipped
+          </p>
+        )}
       </div>
 
       {flowState === 'input' && (
-        <ExpenseForm categories={categories} onCheck={handleCheck} />
+        <ExpenseForm categories={categories} decisionLogs={decisionLogs} today={today} onCheck={handleCheck} />
       )}
 
       {flowState === 'result' && selectedCategory && context && decision && (
-        <div className="flex flex-col gap-6">
+        <div
+          className="flex flex-col gap-6"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           <div className="text-center">
             <p className="text-lg text-gray-600">
               ₹{amount.toLocaleString('en-IN')} for {selectedCategory.name}
@@ -127,7 +158,7 @@ export function CheckPage() {
 
           <ContextMessage context={context} categoryName={selectedCategory.name} />
 
-          <DecisionResult decision={decision} />
+          <DecisionResult decision={decision} today={today} />
 
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
             <p className="text-sm text-gray-500 mb-2 text-center">If you buy this</p>
@@ -149,6 +180,10 @@ export function CheckPage() {
           </div>
 
           <PostDecisionActions onBought={handleBought} onSkipped={handleSkipped} />
+
+          <p className="text-xs text-gray-400 text-center">
+            Swipe right for Bought · Swipe left for Skipped
+          </p>
 
           <button
             onClick={resetFlow}
