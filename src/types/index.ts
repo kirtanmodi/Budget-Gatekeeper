@@ -23,7 +23,6 @@ export interface DecisionLog {
   amount: number;
   decision: 'YES' | 'WAIT' | 'NO';
   waitDays?: number;
-  action: 'BOUGHT' | 'SKIPPED';
   date: string;
 }
 
@@ -38,8 +37,6 @@ export interface BudgetState {
   archivedLogs: DecisionLog[];
   system: SystemState;
   lastUsedCategoryId: string | null;
-  skipStreak: number;
-  totalSavedThisMonth: number;
 }
 
 export type Decision =

@@ -15,8 +15,6 @@ const initialState: BudgetState = {
     today: getInitialToday(),
   },
   lastUsedCategoryId: null,
-  skipStreak: 0,
-  totalSavedThisMonth: 0,
 };
 
 const budgetSlice = createSlice({
@@ -30,30 +28,22 @@ const budgetSlice = createSlice({
         amount: number;
         decision: 'YES' | 'WAIT' | 'NO';
         waitDays?: number;
-        action: 'BOUGHT' | 'SKIPPED';
       }>
     ) => {
-      const { categoryId, amount, decision, waitDays, action: userAction } = action.payload;
+      const { categoryId, amount, decision, waitDays } = action.payload;
       const log: DecisionLog = {
         id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         categoryId,
         amount,
         decision,
         waitDays,
-        action: userAction,
         date: state.system.today,
       };
       state.decisionLogs.push(log);
 
-      if (userAction === 'BOUGHT') {
-        const category = state.categories.find((c) => c.id === categoryId);
-        if (category) {
-          category.currentSpent += amount;
-        }
-        state.skipStreak = 0;
-      } else {
-        state.skipStreak += 1;
-        state.totalSavedThisMonth += amount;
+      const category = state.categories.find((c) => c.id === categoryId);
+      if (category) {
+        category.currentSpent += amount;
       }
     },
 
@@ -65,14 +55,9 @@ const budgetSlice = createSlice({
       const lastLog = state.decisionLogs[state.decisionLogs.length - 1];
       if (!lastLog) return;
 
-      if (lastLog.action === 'BOUGHT') {
-        const category = state.categories.find((c) => c.id === lastLog.categoryId);
-        if (category) {
-          category.currentSpent -= lastLog.amount;
-        }
-      } else {
-        state.skipStreak = Math.max(0, state.skipStreak - 1);
-        state.totalSavedThisMonth = Math.max(0, state.totalSavedThisMonth - lastLog.amount);
+      const category = state.categories.find((c) => c.id === lastLog.categoryId);
+      if (category) {
+        category.currentSpent -= lastLog.amount;
       }
 
       state.decisionLogs.pop();
@@ -137,8 +122,6 @@ const budgetSlice = createSlice({
         state.categories.forEach((category) => {
           category.currentSpent = 0;
         });
-        state.skipStreak = 0;
-        state.totalSavedThisMonth = 0;
         state.currentSnapshot = {
           month: newDate.getMonth(),
           year: newDate.getFullYear(),
@@ -175,13 +158,36 @@ const budgetSlice = createSlice({
       state.currentSnapshot = null;
     },
 
+    addCategory: (
+      state,
+      action: PayloadAction<{ name: string; monthlyBudget: number }>
+    ) => {
+      const { name, monthlyBudget } = action.payload;
+      const id = `${name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`;
+      state.categories.push({
+        id,
+        name,
+        monthlyBudget,
+        currentSpent: 0,
+      });
+    },
+
+    removeCategory: (state, action: PayloadAction<string>) => {
+      const categoryId = action.payload;
+      state.categories = state.categories.filter((c) => c.id !== categoryId);
+      state.decisionLogs = state.decisionLogs.filter((l) => l.categoryId !== categoryId);
+      if (state.lastUsedCategoryId === categoryId) {
+        state.lastUsedCategoryId = null;
+      }
+    },
+
     updateTransaction: (
       state,
       action: PayloadAction<{ id: string; newAmount: number }>
     ) => {
       const { id, newAmount } = action.payload;
       const log = state.decisionLogs.find((l) => l.id === id);
-      if (log && log.action === 'BOUGHT') {
+      if (log) {
         const category = state.categories.find((c) => c.id === log.categoryId);
         if (category) {
           category.currentSpent = category.currentSpent - log.amount + newAmount;
@@ -193,7 +199,7 @@ const budgetSlice = createSlice({
     deleteTransaction: (state, action: PayloadAction<string>) => {
       const id = action.payload;
       const log = state.decisionLogs.find((l) => l.id === id);
-      if (log && log.action === 'BOUGHT') {
+      if (log) {
         const category = state.categories.find((c) => c.id === log.categoryId);
         if (category) {
           category.currentSpent -= log.amount;
@@ -204,6 +210,6 @@ const budgetSlice = createSlice({
   },
 });
 
-export const { logDecision, setSpent, updateBudget, startNewMonth, syncToday, resetAllSpent, resetToDefaults, updateTransaction, deleteTransaction, setLastUsedCategory, undoLastDecision } =
+export const { logDecision, setSpent, updateBudget, startNewMonth, syncToday, resetAllSpent, resetToDefaults, updateTransaction, deleteTransaction, setLastUsedCategory, undoLastDecision, addCategory, removeCategory } =
   budgetSlice.actions;
 export default budgetSlice.reducer;

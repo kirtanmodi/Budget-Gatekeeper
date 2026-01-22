@@ -1,37 +1,20 @@
 import { useState, useMemo } from 'react';
-import type { Category, DecisionLog } from '../types';
+import type { Category } from '../types';
 import { calculateDecision, getDaysInMonth } from '../engine/decision';
 
 interface ExpenseFormProps {
   categories: Category[];
-  decisionLogs: DecisionLog[];
   today: string;
   onCheck: (categoryId: string, amount: number) => void;
   disabled?: boolean;
   lastUsedCategoryId?: string | null;
 }
 
-export function ExpenseForm({ categories, decisionLogs, today, onCheck, disabled, lastUsedCategoryId }: ExpenseFormProps) {
+export function ExpenseForm({ categories, today, onCheck, disabled, lastUsedCategoryId }: ExpenseFormProps) {
   const [amount, setAmount] = useState('');
   const [categoryId, setCategoryId] = useState(lastUsedCategoryId || '');
 
-  const quickAmounts = useMemo(() => {
-    const defaultAmounts = [100, 500, 1000, 2000, 5000];
-    if (!categoryId) return defaultAmounts;
-    const categoryLogs = decisionLogs.filter(
-      (l) => l.categoryId === categoryId && l.action === 'BOUGHT'
-    );
-    if (categoryLogs.length === 0) return defaultAmounts;
-    const counts = categoryLogs.reduce((acc, l) => {
-      acc[l.amount] = (acc[l.amount] || 0) + 1;
-      return acc;
-    }, {} as Record<number, number>);
-    const fromHistory = Object.entries(counts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 4)
-      .map(([amt]) => Number(amt));
-    return fromHistory.length > 0 ? fromHistory : defaultAmounts;
-  }, [decisionLogs, categoryId]);
+  const quickAmounts = [100, 500, 1000, 2000, 5000];
 
   const preview = useMemo(() => {
     const numAmount = parseFloat(amount);

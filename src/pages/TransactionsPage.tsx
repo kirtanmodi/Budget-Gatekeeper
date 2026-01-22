@@ -10,8 +10,7 @@ export function TransactionsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editAmount, setEditAmount] = useState('');
 
-  const boughtLogs = decisionLogs
-    .filter((l) => l.action === 'BOUGHT')
+  const boughtLogs = [...decisionLogs]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const getCategoryName = (categoryId: string) => {

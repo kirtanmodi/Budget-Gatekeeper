@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { logDecision, setLastUsedCategory, undoLastDecision } from '../store/budgetSlice';
 import { ExpenseForm } from '../components/ExpenseForm';
@@ -15,7 +15,6 @@ type FlowState = 'input' | 'result';
 export function CheckPage() {
   const dispatch = useAppDispatch();
   const categories = useAppSelector((state) => state.budget.categories);
-  const decisionLogs = useAppSelector((state) => state.budget.decisionLogs);
   const today = useAppSelector((state) => state.budget.system.today);
   const lastUsedCategoryId = useAppSelector((state) => state.budget.lastUsedCategoryId);
 
@@ -25,8 +24,6 @@ export function CheckPage() {
   const [decision, setDecision] = useState<Decision | null>(null);
   const [showUndo, setShowUndo] = useState(false);
   const [undoMessage, setUndoMessage] = useState('');
-
-  const touchStartX = useRef<number>(0);
 
   const todayDate = useMemo(() => new Date(today), [today]);
   const currentDay = todayDate.getDate();
@@ -103,7 +100,6 @@ export function CheckPage() {
         amount,
         decision: decision.type,
         waitDays: decision.type === 'WAIT' ? decision.days : undefined,
-        action: 'BOUGHT',
       })
     );
 
@@ -113,22 +109,6 @@ export function CheckPage() {
   };
 
   const handleSkipped = () => {
-    if (!selectedCategoryId || !decision) return;
-
-    const categoryName = categories.find((c) => c.id === selectedCategoryId)?.name || '';
-
-    dispatch(
-      logDecision({
-        categoryId: selectedCategoryId,
-        amount,
-        decision: decision.type,
-        waitDays: decision.type === 'WAIT' ? decision.days : undefined,
-        action: 'SKIPPED',
-      })
-    );
-
-    setUndoMessage(`Skipped ₹${amount.toLocaleString('en-IN')} in ${categoryName}`);
-    setShowUndo(true);
     resetFlow();
   };
 
@@ -146,19 +126,6 @@ export function CheckPage() {
     setSelectedCategoryId(null);
     setAmount(0);
     setDecision(null);
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    const delta = e.changedTouches[0].clientX - touchStartX.current;
-    if (delta > 100) {
-      handleBought();
-    } else if (delta < -100) {
-      handleSkipped();
-    }
   };
 
   const formattedDate = todayDate.toLocaleDateString('en-IN', {
@@ -180,7 +147,6 @@ export function CheckPage() {
       {flowState === 'input' && (
         <ExpenseForm
           categories={categories}
-          decisionLogs={decisionLogs}
           today={today}
           onCheck={handleCheck}
           lastUsedCategoryId={lastUsedCategoryId}
@@ -188,11 +154,7 @@ export function CheckPage() {
       )}
 
       {flowState === 'result' && selectedCategory && context && decision && (
-        <div
-          className="flex flex-col gap-6"
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-        >
+        <div className="flex flex-col gap-6">
           <div className="text-center">
             <p className="text-lg text-gray-600">
               ₹{amount.toLocaleString('en-IN')} for {selectedCategory.name}
@@ -223,10 +185,6 @@ export function CheckPage() {
           </div>
 
           <PostDecisionActions onBought={handleBought} onSkipped={handleSkipped} />
-
-          <p className="text-xs text-gray-400 text-center">
-            Swipe right for Bought · Swipe left for Skipped
-          </p>
 
           <button
             onClick={resetFlow}
