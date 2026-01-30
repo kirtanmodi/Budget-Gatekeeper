@@ -28,9 +28,24 @@ export function AdjustSpendPage() {
   return (
     <div className="flex flex-col min-h-screen pb-20 px-4 pt-6">
       <h1 className="text-2xl font-bold text-gray-900 mb-2">Adjust Spend</h1>
-      <p className="text-gray-600 mb-6">
+      <p className="text-gray-600 mb-4">
         Update your current spending for each category
       </p>
+
+      <div className="flex flex-col gap-3 mb-6">
+        <button
+          onClick={handleResetSpent}
+          className="w-full py-3 text-gray-700 border border-gray-300 rounded-lg active:bg-gray-100"
+        >
+          Reset All Spending to Zero
+        </button>
+        <button
+          onClick={handleResetToDefaults}
+          className="w-full py-3 text-red-600 border border-red-300 rounded-lg active:bg-red-50"
+        >
+          Reset Categories to Defaults
+        </button>
+      </div>
 
       <div className="bg-gray-100 rounded-lg p-4 mb-6">
         <div className="flex justify-between items-center">
@@ -55,21 +70,6 @@ export function AdjustSpendPage() {
             onSpentChange={handleSpentChange}
           />
         ))}
-      </div>
-
-      <div className="flex flex-col gap-3 mt-6 pt-4 border-t border-gray-200">
-        <button
-          onClick={handleResetSpent}
-          className="w-full py-3 text-gray-700 border border-gray-300 rounded-lg active:bg-gray-100"
-        >
-          Reset All Spending to Zero
-        </button>
-        <button
-          onClick={handleResetToDefaults}
-          className="w-full py-3 text-red-600 border border-red-300 rounded-lg active:bg-red-50"
-        >
-          Reset Categories to Defaults
-        </button>
       </div>
     </div>
   );

@@ -108,6 +108,22 @@ export function ExpenseForm({ categories, today, onCheck, disabled, lastUsedCate
             </option>
           ))}
         </select>
+        <div className="flex flex-wrap gap-2 mt-2">
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              type="button"
+              onClick={() => setCategoryId(cat.id)}
+              className={`px-3 py-2 text-sm rounded-lg min-h-[44px] ${
+                categoryId === cat.id
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-gray-100 active:bg-gray-200'
+              }`}
+            >
+              {cat.name}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="flex items-center gap-3">
