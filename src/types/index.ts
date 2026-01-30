@@ -54,3 +54,53 @@ export interface ContextInfo {
   budget: number;
   remaining: number;
 }
+
+export type SuggestionType =
+  | 'BUDGET_INCREASE'
+  | 'BUDGET_DECREASE'
+  | 'REALLOCATION'
+  | 'PACE_WARNING'
+  | 'SURPLUS'
+  | 'ON_TRACK';
+
+export type SuggestionSeverity = 'info' | 'warning' | 'success';
+
+export interface SuggestionAction {
+  label: string;
+  type: 'UPDATE_BUDGET' | 'REALLOCATE';
+  categoryId: string;
+  amount: number;
+  targetCategoryId?: string;
+}
+
+export interface Suggestion {
+  id: string;
+  type: SuggestionType;
+  severity: SuggestionSeverity;
+  categoryId?: string;
+  title: string;
+  description: string;
+  action?: SuggestionAction;
+}
+
+export interface CategoryAnalysis {
+  categoryId: string;
+  categoryName: string;
+  totalTransactions: number;
+  yesCount: number;
+  waitCount: number;
+  noCount: number;
+  waitRatio: number;
+  budget: number;
+  spent: number;
+  usedPercent: number;
+}
+
+export interface PaceProjection {
+  categoryId: string;
+  categoryName: string;
+  projectedEndSpend: number;
+  budget: number;
+  projectedDelta: number;
+  isOverspending: boolean;
+}

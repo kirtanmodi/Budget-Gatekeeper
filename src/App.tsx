@@ -7,6 +7,7 @@ import { CheckPage } from './pages/CheckPage';
 import { TransactionsPage } from './pages/TransactionsPage';
 import { AdjustSpendPage } from './pages/AdjustSpendPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { InsightsPage } from './pages/InsightsPage';
 import { NavBar } from './components/NavBar';
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/transactions" element={<TransactionsPage />} />
         <Route path="/adjust" element={<AdjustSpendPage />} />
+        <Route path="/insights" element={<InsightsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Routes>
       <NavBar />

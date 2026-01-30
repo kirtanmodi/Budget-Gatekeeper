@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { useAppSelector } from '../store/hooks';
 import { getDaysInMonth, getZone, type Zone } from '../engine/decision';
+import { generateSuggestions } from '../engine/suggestions';
 
 const zoneLabels: Record<Zone, string> = {
   FREE: 'Free Zone',
@@ -15,8 +17,9 @@ const zoneStyles: Record<Zone, { badge: string; bar: string }> = {
 };
 
 export function DashboardPage() {
-  const categories = useAppSelector((state) => state.budget.categories);
-  const today = useAppSelector((state) => state.budget.system.today);
+  const budgetState = useAppSelector((state) => state.budget);
+  const { categories, system } = budgetState;
+  const today = system.today;
   const todayDate = useMemo(() => new Date(today), [today]);
   const currentDay = todayDate.getDate();
   const daysInMonth = getDaysInMonth(todayDate.getFullYear(), todayDate.getMonth());
@@ -25,6 +28,14 @@ export function DashboardPage() {
   const totalBudget = categories.reduce((sum, c) => sum + c.monthlyBudget, 0);
   const totalSpent = categories.reduce((sum, c) => sum + c.currentSpent, 0);
   const totalRemaining = totalBudget - totalSpent;
+
+  const suggestions = useMemo(
+    () => generateSuggestions(budgetState),
+    [budgetState]
+  );
+  const actionableSuggestions = suggestions.filter(
+    (s) => s.severity === 'warning' || s.action
+  );
 
   const formattedDate = todayDate.toLocaleDateString('en-IN', {
     weekday: 'long',
@@ -63,6 +74,46 @@ export function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Insights banner */}
+      {actionableSuggestions.length > 0 && (
+        <Link
+          to="/insights"
+          className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-lg p-3 mb-6"
+        >
+          <div className="flex items-center gap-2">
+            <svg
+              className="w-5 h-5 text-amber-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+              />
+            </svg>
+            <span className="text-sm font-medium text-amber-800">
+              {actionableSuggestions.length} suggestion{actionableSuggestions.length !== 1 ? 's' : ''} for you
+            </span>
+          </div>
+          <svg
+            className="w-4 h-4 text-amber-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </Link>
+      )}
 
       <div className="flex-1 space-y-3">
         {categories.map((category) => {
