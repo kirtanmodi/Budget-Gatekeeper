@@ -40,10 +40,16 @@ export interface BudgetState {
   lastUsedCategoryId: string | null;
 }
 
+export type DecisionReason =
+  | { code: 'GRACE'; usedPercent: number }
+  | { code: 'ON_PACE'; allowedPercent: number }
+  | { code: 'OVER_PACE'; allowedPercent: number; totalPercent: number }
+  | { code: 'OVER_BUDGET' };
+
 export type Decision =
-  | { type: 'YES' }
-  | { type: 'WAIT'; days: number }
-  | { type: 'NO' };
+  | { type: 'YES'; reason: DecisionReason }
+  | { type: 'WAIT'; days: number; reason: DecisionReason }
+  | { type: 'NO'; reason: DecisionReason };
 
 export interface ContextInfo {
   usedPercent: number;

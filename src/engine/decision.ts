@@ -9,33 +9,44 @@ export function calculateDecision(
 ): Decision {
   const total = spentSoFar + newAmount;
   const graceLimit = categoryBudget * 0.8;
-  const dailyAllowance = categoryBudget / daysInMonth;
-  const expectedSpend = dailyAllowance * currentDay;
+
+  // Time-weighted: 50% allowed on day 1, scaling to 100% by month end
+  const progress = currentDay / daysInMonth;
+  const expectedRatio = 0.5 + 0.5 * progress;
+  const expectedSpend = categoryBudget * expectedRatio;
 
   const graceAvailable = spentSoFar < graceLimit;
+  const usedPercent = categoryBudget > 0 ? Math.round((total / categoryBudget) * 100) : 0;
+  const allowedPercent = Math.round(expectedRatio * 100);
 
   if (graceAvailable && total <= graceLimit) {
-    return { type: 'YES' };
+    return {
+      type: 'YES',
+      reason: { code: 'GRACE', usedPercent },
+    };
   }
 
   if (total <= expectedSpend) {
-    return { type: 'YES' };
+    return {
+      type: 'YES',
+      reason: { code: 'ON_PACE', allowedPercent },
+    };
   }
 
   if (total <= categoryBudget) {
-    const remainingAfterPurchase = categoryBudget - total;
-    const minPostPurchaseRate = dailyAllowance * 0.5;
-    const maxDaysCanSupport = remainingAfterPurchase / minPostPurchaseRate;
-    const earliestBuyDay = Math.ceil(daysInMonth - maxDaysCanSupport);
-    const requiredDay = Math.max(
-      earliestBuyDay,
-      Math.ceil(total / dailyAllowance)
-    );
-    const waitDays = Math.max(0, requiredDay - currentDay);
-    return { type: 'WAIT', days: waitDays };
+    const waitUntilDay = daysInMonth * (2 * total / categoryBudget - 1);
+    const waitDays = Math.ceil(waitUntilDay) - currentDay;
+    return {
+      type: 'WAIT',
+      days: waitDays,
+      reason: { code: 'OVER_PACE', allowedPercent, totalPercent: usedPercent },
+    };
   }
 
-  return { type: 'NO' };
+  return {
+    type: 'NO',
+    reason: { code: 'OVER_BUDGET' },
+  };
 }
 
 export function calculateContext(

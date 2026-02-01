@@ -1,4 +1,4 @@
-import type { Decision } from '../types';
+import type { Decision, DecisionReason } from '../types';
 import { formatCurrency, pluralize } from '../utils/format';
 
 interface DecisionResultProps {
@@ -6,6 +6,19 @@ interface DecisionResultProps {
   amount: number;
   categoryName: string;
   today: string;
+}
+
+function getReasonMessage(reason: DecisionReason): string {
+  switch (reason.code) {
+    case 'GRACE':
+      return `Using ${reason.usedPercent}% — plenty of buffer`;
+    case 'ON_PACE':
+      return `On track — ${reason.allowedPercent}% allowed by now`;
+    case 'OVER_PACE':
+      return `${reason.totalPercent}% vs ${reason.allowedPercent}% allowed`;
+    case 'OVER_BUDGET':
+      return 'Exceeds your budget';
+  }
 }
 
 export function DecisionResult({ decision, amount, categoryName, today }: DecisionResultProps) {
@@ -20,6 +33,9 @@ export function DecisionResult({ decision, amount, categoryName, today }: Decisi
         <span className="text-4xl font-bold text-emerald-600">Go ahead</span>
         <p className="text-lg text-gray-600 mt-3">
           {formatCurrency(amount)} for {categoryName}
+        </p>
+        <p className="text-sm text-emerald-600 mt-2">
+          {getReasonMessage(decision.reason)}
         </p>
       </div>
     );
@@ -47,6 +63,9 @@ export function DecisionResult({ decision, amount, categoryName, today }: Decisi
         <p className="text-lg text-gray-600 mt-3">
           {formatCurrency(amount)} for {categoryName}
         </p>
+        <p className="text-sm text-amber-600 mt-2">
+          {getReasonMessage(decision.reason)}
+        </p>
         <p className="text-sm text-gray-500 mt-1">
           Buy on {formattedBuyDate}
         </p>
@@ -64,6 +83,9 @@ export function DecisionResult({ decision, amount, categoryName, today }: Decisi
       <span className="text-4xl font-bold text-red-600">Over budget</span>
       <p className="text-lg text-gray-600 mt-3">
         {formatCurrency(amount)} for {categoryName}
+      </p>
+      <p className="text-sm text-red-600 mt-2">
+        {getReasonMessage(decision.reason)}
       </p>
     </div>
   );
