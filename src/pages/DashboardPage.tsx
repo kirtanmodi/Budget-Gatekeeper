@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppSelector } from '../store/hooks';
 import { getEffectiveBudget } from '../store/budgetSlice';
@@ -6,43 +6,100 @@ import { getDaysInMonth, getZone } from '../engine/decision';
 import { generateSuggestions } from '../engine/suggestions';
 import { zoneLabels, zoneStyles } from '../constants/zones';
 import { formatCurrency, pluralize } from '../utils/format';
-import { getTotalBudget, getTotalSpent } from '../utils/budget';
+import { getTotalBudget } from '../utils/budget';
+import { MonthPicker } from '../components/MonthPicker';
+import {
+  type MonthYear,
+  filterLogsByMonth,
+  calculateSpentByCategory,
+  getEarliestLogMonth,
+  isSameMonth,
+  formatMonthYear,
+} from '../utils/date';
 
 export function DashboardPage() {
   const budgetState = useAppSelector((state) => state.budget);
-  const { categories, system } = budgetState;
-  const today = system.today;
-  const todayDate = useMemo(() => new Date(today), [today]);
-  const currentDay = todayDate.getDate();
-  const daysInMonth = getDaysInMonth(todayDate.getFullYear(), todayDate.getMonth());
+  const { categories, decisionLogs, archivedLogs, system } = budgetState;
+
+  const todayDate = useMemo(() => new Date(system.today), [system.today]);
+  const currentMonth: MonthYear = useMemo(
+    () => ({
+      year: todayDate.getFullYear(),
+      month: todayDate.getMonth(),
+    }),
+    [todayDate]
+  );
+
+  const [viewDate, setViewDate] = useState<MonthYear>(currentMonth);
+  const isCurrentMonth = isSameMonth(viewDate, currentMonth);
+
+  const minDate = useMemo(() => {
+    const earliest = getEarliestLogMonth(archivedLogs);
+    return earliest || currentMonth;
+  }, [archivedLogs, currentMonth]);
+
+  const displayLogs = useMemo(() => {
+    return isCurrentMonth
+      ? decisionLogs
+      : filterLogsByMonth(archivedLogs, viewDate.year, viewDate.month);
+  }, [isCurrentMonth, decisionLogs, archivedLogs, viewDate]);
+
+  const historicalSpentMap = useMemo(() => {
+    if (isCurrentMonth) return null;
+    return calculateSpentByCategory(displayLogs);
+  }, [isCurrentMonth, displayLogs]);
+
+  const getCategorySpent = (categoryId: string, currentSpent: number) => {
+    if (isCurrentMonth) return currentSpent;
+    return historicalSpentMap?.get(categoryId) ?? 0;
+  };
+
+  const daysInMonth = getDaysInMonth(viewDate.year, viewDate.month);
+  const currentDay = isCurrentMonth ? todayDate.getDate() : daysInMonth;
   const daysLeft = daysInMonth - currentDay;
 
   const totalBudget = getTotalBudget(categories);
-  const totalSpent = getTotalSpent(categories);
+  const totalSpent = useMemo(() => {
+    if (isCurrentMonth) {
+      return categories.reduce((sum, c) => sum + c.currentSpent, 0);
+    }
+    return displayLogs.reduce((sum, log) => sum + log.amount, 0);
+  }, [isCurrentMonth, categories, displayLogs]);
   const totalRemaining = totalBudget - totalSpent;
 
   const suggestions = useMemo(
-    () => generateSuggestions(budgetState),
-    [budgetState]
+    () => (isCurrentMonth ? generateSuggestions(budgetState) : []),
+    [budgetState, isCurrentMonth]
   );
   const actionableSuggestions = suggestions.filter(
     (s) => s.severity === 'warning' || s.action
   );
 
-  const formattedDate = todayDate.toLocaleDateString('en-IN', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  });
+  const formattedDate = isCurrentMonth
+    ? todayDate.toLocaleDateString('en-IN', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+      })
+    : formatMonthYear(viewDate.year, viewDate.month);
 
   return (
     <div className="flex flex-col min-h-screen pb-20 px-4 pt-6">
       <div className="mb-4">
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-sm text-gray-500 mt-1">
-          {formattedDate} — {daysLeft} {pluralize(daysLeft, 'day')} left
+          {formattedDate}
+          {isCurrentMonth && ` — ${daysLeft} ${pluralize(daysLeft, 'day')} left`}
+          {!isCurrentMonth && ' (Completed)'}
         </p>
       </div>
+
+      <MonthPicker
+        value={viewDate}
+        onChange={setViewDate}
+        minDate={minDate}
+        maxDate={currentMonth}
+      />
 
       <div className="bg-gray-100 rounded-lg p-4 mb-6">
         <div className="grid grid-cols-3 gap-4 text-center">
@@ -60,14 +117,16 @@ export function DashboardPage() {
           </div>
           <div>
             <p className="text-xs text-gray-500">Remaining</p>
-            <p className={`text-lg font-semibold ${totalRemaining < 0 ? 'text-red-600' : 'text-gray-900'}`}>
+            <p
+              className={`text-lg font-semibold ${totalRemaining < 0 ? 'text-red-600' : 'text-gray-900'}`}
+            >
               {formatCurrency(totalRemaining)}
             </p>
           </div>
         </div>
       </div>
 
-      {actionableSuggestions.length > 0 && (
+      {isCurrentMonth && actionableSuggestions.length > 0 && (
         <Link
           to="/insights"
           className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-lg p-3 mb-6"
@@ -87,7 +146,8 @@ export function DashboardPage() {
               />
             </svg>
             <span className="text-sm font-medium text-amber-800">
-              {actionableSuggestions.length} {pluralize(actionableSuggestions.length, 'suggestion')} for you
+              {actionableSuggestions.length}{' '}
+              {pluralize(actionableSuggestions.length, 'suggestion')} for you
             </span>
           </div>
           <svg
@@ -109,24 +169,34 @@ export function DashboardPage() {
       <div className="flex-1 space-y-3">
         {categories.map((category) => {
           const effectiveBudget = getEffectiveBudget(category);
-          const zone = getZone(category.currentSpent, effectiveBudget);
-          const percent = effectiveBudget > 0
-            ? Math.min(100, (category.currentSpent / effectiveBudget) * 100)
-            : 0;
-          const remaining = effectiveBudget - category.currentSpent;
-          const hasTemporaryAdjustment = category.temporaryAdjustment !== undefined && category.temporaryAdjustment !== 0;
+          const spent = getCategorySpent(category.id, category.currentSpent);
+          const zone = getZone(spent, effectiveBudget);
+          const percent =
+            effectiveBudget > 0
+              ? Math.min(100, (spent / effectiveBudget) * 100)
+              : 0;
+          const remaining = effectiveBudget - spent;
+          const hasTemporaryAdjustment =
+            isCurrentMonth &&
+            category.temporaryAdjustment !== undefined &&
+            category.temporaryAdjustment !== 0;
 
           return (
-            <div key={category.id} className="bg-white border border-gray-200 rounded-lg p-4">
+            <div
+              key={category.id}
+              className="bg-white border border-gray-200 rounded-lg p-4"
+            >
               <div className="flex items-center justify-between mb-2">
                 <p className="font-medium text-gray-900">{category.name}</p>
-                <span className={`px-2 py-1 text-xs font-medium rounded ${zoneStyles[zone].badge}`}>
+                <span
+                  className={`px-2 py-1 text-xs font-medium rounded ${zoneStyles[zone].badge}`}
+                >
                   {zoneLabels[zone]}
                 </span>
               </div>
 
               <div className="flex justify-between text-sm text-gray-600 mb-2">
-                <span>{formatCurrency(category.currentSpent)} spent</span>
+                <span>{formatCurrency(spent)} spent</span>
                 <span className={remaining < 0 ? 'text-red-600' : ''}>
                   {formatCurrency(remaining)} left
                 </span>
@@ -142,7 +212,9 @@ export function DashboardPage() {
               <p className="text-xs text-gray-500 mt-2 text-right">
                 of {formatCurrency(effectiveBudget)}
                 {hasTemporaryAdjustment && (
-                  <span className="text-blue-500 ml-1">(adjusted this month)</span>
+                  <span className="text-blue-500 ml-1">
+                    (adjusted this month)
+                  </span>
                 )}
               </p>
             </div>
