@@ -9,6 +9,7 @@ import { AdjustSpendPage } from './pages/AdjustSpendPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { InsightsPage } from './pages/InsightsPage';
 import { MonthlyOverviewPage } from './pages/MonthlyOverviewPage';
+import { DebugPage } from './pages/DebugPage';
 import { NavBar } from './components/NavBar';
 import { Sidebar } from './components/Sidebar';
 
@@ -46,6 +47,7 @@ function App() {
         <Route path="/insights" element={<InsightsPage />} />
         <Route path="/overview" element={<MonthlyOverviewPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/debug" element={<DebugPage />} />
       </Routes>
       <NavBar onMenuClick={() => setSidebarOpen(true)} />
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />

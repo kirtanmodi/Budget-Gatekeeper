@@ -75,6 +75,18 @@ const menuItems = [
       </>
     ),
   },
+  {
+    to: '/debug',
+    label: 'Debug',
+    icon: (
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+      />
+    ),
+  },
 ];
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
