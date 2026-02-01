@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { useAppDispatch } from './store/hooks';
 import { syncToday } from './store/budgetSlice';
@@ -9,9 +9,11 @@ import { AdjustSpendPage } from './pages/AdjustSpendPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { InsightsPage } from './pages/InsightsPage';
 import { NavBar } from './components/NavBar';
+import { Sidebar } from './components/Sidebar';
 
 function App() {
   const dispatch = useAppDispatch();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const syncTime = () => {
@@ -43,7 +45,8 @@ function App() {
         <Route path="/insights" element={<InsightsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Routes>
-      <NavBar />
+      <NavBar onMenuClick={() => setSidebarOpen(true)} />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
     </div>
   );
 }
