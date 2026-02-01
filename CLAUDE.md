@@ -12,6 +12,8 @@ npm run preview  # Local production preview
 npm run deploy   # Build + Netlify deploy --prod
 ```
 
+## MAKE Sure any page you create is Mobile first
+
 ## Architecture
 
 ```

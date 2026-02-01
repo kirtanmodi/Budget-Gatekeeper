@@ -2,8 +2,10 @@ import { useMemo, useState } from 'react';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { updateBudgetWithScope, getEffectiveBudget } from '../store/budgetSlice';
 import { generateSuggestions, getDecisionStats, calculatePaceProjections } from '../engine/suggestions';
+import { generateForecastData } from '../engine/forecast';
 import { getDaysInMonth } from '../engine/decision';
 import { SuggestionCard } from '../components/SuggestionCard';
+import { ForecastChart } from '../components/ForecastChart';
 import { formatNumber } from '../utils/format';
 import type { Suggestion } from '../types';
 
@@ -29,6 +31,11 @@ export function InsightsPage() {
   const projections = useMemo(
     () => calculatePaceProjections(categories, currentDay, daysInMonth),
     [categories, currentDay, daysInMonth]
+  );
+
+  const forecastData = useMemo(
+    () => generateForecastData(categories, decisionLogs, currentDay, daysInMonth),
+    [categories, decisionLogs, currentDay, daysInMonth]
   );
 
   const netProjection = projections.reduce(
@@ -144,6 +151,31 @@ export function InsightsPage() {
           <p className="text-xs text-gray-500 mt-3">
             Based on current pace with {daysLeft} days remaining
           </p>
+        </div>
+      )}
+
+      {currentDay >= 3 && (
+        <div className="bg-gray-100 rounded-lg p-4 mb-6">
+          <h2 className="text-sm font-medium text-gray-700 mb-3">
+            Spending Trajectory
+          </h2>
+          <div className="overflow-hidden -mx-1">
+            <ForecastChart data={forecastData} height={160} />
+          </div>
+          <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-gray-500 mt-2">
+            <div className="flex items-center gap-1.5">
+              <span className="w-4 h-0.5 bg-green-500 rounded" />
+              <span>Actual</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-4 h-0.5 bg-gray-400 rounded opacity-60" />
+              <span>Budget</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className={`w-4 h-0.5 rounded ${forecastData.isOverspending ? 'bg-red-500' : 'bg-green-500'} opacity-70`} />
+              <span>Projected</span>
+            </div>
+          </div>
         </div>
       )}
 

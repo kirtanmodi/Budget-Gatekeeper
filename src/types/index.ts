@@ -105,3 +105,19 @@ export interface PaceProjection {
   projectedDelta: number;
   isOverspending: boolean;
 }
+
+export interface ForecastDataPoint {
+  day: number;
+  actual: number | null;
+  projected: number;
+  budget: number;
+}
+
+export interface ForecastData {
+  points: ForecastDataPoint[];
+  totalBudget: number;
+  currentDay: number;
+  daysInMonth: number;
+  projectedEndSpend: number;
+  isOverspending: boolean;
+}
