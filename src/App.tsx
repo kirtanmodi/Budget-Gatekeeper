@@ -8,6 +8,7 @@ import { TransactionsPage } from './pages/TransactionsPage';
 import { AdjustSpendPage } from './pages/AdjustSpendPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { InsightsPage } from './pages/InsightsPage';
+import { MonthlyOverviewPage } from './pages/MonthlyOverviewPage';
 import { NavBar } from './components/NavBar';
 import { Sidebar } from './components/Sidebar';
 
@@ -43,6 +44,7 @@ function App() {
         <Route path="/transactions" element={<TransactionsPage />} />
         <Route path="/adjust" element={<AdjustSpendPage />} />
         <Route path="/insights" element={<InsightsPage />} />
+        <Route path="/overview" element={<MonthlyOverviewPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Routes>
       <NavBar onMenuClick={() => setSidebarOpen(true)} />
