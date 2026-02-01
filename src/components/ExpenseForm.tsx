@@ -2,6 +2,8 @@ import { useState, useMemo } from 'react';
 import type { Category } from '../types';
 import { calculateDecision, getDaysInMonth } from '../engine/decision';
 import { formatCurrency } from '../utils/format';
+import { getEffectiveBudget } from '../store/budgetSlice';
+import { CategoryChip } from './CategoryChip';
 
 interface ExpenseFormProps {
   categories: Category[];
@@ -26,7 +28,7 @@ export function ExpenseForm({ categories, today, onCheck, disabled, lastUsedCate
     const currentDay = todayDate.getDate();
     const daysInMonth = getDaysInMonth(todayDate.getFullYear(), todayDate.getMonth());
     const decision = calculateDecision(
-      category.monthlyBudget,
+      getEffectiveBudget(category),
       category.currentSpent,
       numAmount,
       currentDay,
@@ -92,37 +94,15 @@ export function ExpenseForm({ categories, today, onCheck, disabled, lastUsedCate
       </div>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="category" className="text-sm font-medium text-gray-700">
-          Category
-        </label>
-        <select
-          id="category"
-          value={categoryId}
-          onChange={(e) => setCategoryId(e.target.value)}
-          disabled={disabled}
-          className="w-full px-4 py-4 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent disabled:bg-gray-100 appearance-none bg-white"
-        >
-          <option value="">Select category</option>
+        <span className="text-sm font-medium text-gray-700">Category</span>
+        <div className="flex flex-wrap gap-2">
           {categories.map((cat) => (
-            <option key={cat.id} value={cat.id}>
-              {cat.name}
-            </option>
-          ))}
-        </select>
-        <div className="flex flex-wrap gap-2 mt-2">
-          {categories.map((cat) => (
-            <button
+            <CategoryChip
               key={cat.id}
-              type="button"
+              category={cat}
+              selected={categoryId === cat.id}
               onClick={() => setCategoryId(cat.id)}
-              className={`px-3 py-2 text-sm rounded-lg min-h-[44px] ${
-                categoryId === cat.id
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-gray-100 active:bg-gray-200'
-              }`}
-            >
-              {cat.name}
-            </button>
+            />
           ))}
         </div>
       </div>
