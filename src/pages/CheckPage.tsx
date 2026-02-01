@@ -243,9 +243,21 @@ export function CheckPage() {
                 </div>
               </div>
             </div>
-            <p className="text-sm text-gray-500 text-center mt-4">
-              {daysLeft} {pluralize(daysLeft, 'day')} left · {formatCurrency(dailyAfter)}/day after
-            </p>
+            <div className="mt-4 pt-3 border-t border-gray-200">
+              <p className="text-xs text-gray-500 text-center mb-2">
+                {daysLeft} {pluralize(daysLeft, 'day')} left in month
+              </p>
+              <div className="flex justify-center gap-6">
+                <div className="text-center">
+                  <p className="text-lg font-semibold text-gray-900">{formatCurrency(dailyAfter)}</p>
+                  <p className="text-xs text-gray-500">per day</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-lg font-semibold text-gray-900">{formatCurrency(dailyAfter * 7)}</p>
+                  <p className="text-xs text-gray-500">per week</p>
+                </div>
+              </div>
+            </div>
           </div>
 
           <button
