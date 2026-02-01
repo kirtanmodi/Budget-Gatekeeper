@@ -8,12 +8,13 @@ import type {
 } from '../types';
 import { getDaysInMonth } from './decision';
 import { getEffectiveBudget } from '../store/budgetSlice';
+import { formatCurrency } from '../utils/format';
 
 const WAIT_RATIO_THRESHOLD = 0.4;
 const UNDERUTILIZED_THRESHOLD = 0.5;
 const PACE_WARNING_THRESHOLD = 1.1;
 
-export function analyzeDecisionOutcomes(
+function analyzeDecisionOutcomes(
   logs: DecisionLog[],
   categories: Category[]
 ): CategoryAnalysis[] {
@@ -95,7 +96,7 @@ function createBudgetIncreaseSuggestion(
     title: `${analysis.categoryName} budget seems tight`,
     description: `${analysis.waitCount + analysis.noCount} of ${analysis.totalTransactions} purchases required WAIT or NO. Consider increasing the budget.`,
     action: {
-      label: `Increase by ₹${suggestedIncrease.toLocaleString('en-IN')}`,
+      label: `Increase by ${formatCurrency(suggestedIncrease)}`,
       type: 'UPDATE_BUDGET',
       categoryId: analysis.categoryId,
       amount: analysis.budget + suggestedIncrease,
@@ -112,7 +113,7 @@ function createPaceWarningSuggestion(projection: PaceProjection): Suggestion {
     severity: 'warning',
     categoryId: projection.categoryId,
     title: `${projection.categoryName} on track to overspend`,
-    description: `At current pace, you'll exceed budget by ₹${overspendAmount.toLocaleString('en-IN')} this month.`,
+    description: `At current pace, you'll exceed budget by ${formatCurrency(overspendAmount)} this month.`,
   };
 }
 
@@ -133,7 +134,7 @@ function createUnderutilizedSuggestion(
     severity: 'info',
     categoryId: analysis.categoryId,
     title: `${analysis.categoryName} has room`,
-    description: `Only ${Math.round(analysis.usedPercent)}% used with ${daysInMonth - currentDay} days left. ₹${unusedAmount.toLocaleString('en-IN')} could be reallocated.`,
+    description: `Only ${Math.round(analysis.usedPercent)}% used with ${daysInMonth - currentDay} days left. ${formatCurrency(unusedAmount)} could be reallocated.`,
   };
 }
 
@@ -153,9 +154,9 @@ function createReallocationSuggestion(
     severity: 'info',
     categoryId: fromAnalysis.categoryId,
     title: `Move budget to ${toAnalysis.categoryName}?`,
-    description: `${fromAnalysis.categoryName} is underspent while ${toAnalysis.categoryName} is tight. Consider moving ₹${transferAmount.toLocaleString('en-IN')}.`,
+    description: `${fromAnalysis.categoryName} is underspent while ${toAnalysis.categoryName} is tight. Consider moving ${formatCurrency(transferAmount)}.`,
     action: {
-      label: `Move ₹${transferAmount.toLocaleString('en-IN')}`,
+      label: `Move ${formatCurrency(transferAmount)}`,
       type: 'REALLOCATE',
       categoryId: fromAnalysis.categoryId,
       amount: transferAmount,
@@ -172,7 +173,7 @@ function createSurplusSuggestion(
     type: 'SURPLUS',
     severity: 'success',
     title: 'On track to save',
-    description: `Projected surplus of ₹${totalProjectedSavings.toLocaleString('en-IN')} this month. Keep it up!`,
+    description: `Projected surplus of ${formatCurrency(totalProjectedSavings)} this month. Keep it up!`,
   };
 }
 

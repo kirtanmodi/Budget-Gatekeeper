@@ -1,22 +1,12 @@
 import type { ContextInfo } from '../types';
-import { getZone, type Zone } from '../engine/decision';
+import { getZone } from '../engine/decision';
+import { zoneLabels, zoneStyles } from '../constants/zones';
+import { formatCurrency, pluralize } from '../utils/format';
 
 interface ContextMessageProps {
   context: ContextInfo;
   categoryName: string;
 }
-
-const zoneLabels: Record<Zone, string> = {
-  FREE: 'Free Zone',
-  CONTROL: 'Control Zone',
-  STOP: 'Over Budget',
-};
-
-const zoneStyles: Record<Zone, string> = {
-  FREE: 'bg-gray-200 text-gray-700',
-  CONTROL: 'bg-yellow-100 text-yellow-800',
-  STOP: 'bg-red-100 text-red-800',
-};
 
 export function ContextMessage({ context, categoryName }: ContextMessageProps) {
   const { usedPercent, weeksLeft, daysLeft, remainingPerWeek, remainingPerDay, spent, budget, remaining } = context;
@@ -27,24 +17,24 @@ export function ContextMessage({ context, categoryName }: ContextMessageProps) {
       <p className="text-xs text-gray-500 mb-2">Current status (before this purchase)</p>
       <div className="flex items-center justify-between mb-3">
         <p className="font-medium text-gray-900">{categoryName}</p>
-        <span className={`px-2 py-1 text-xs font-medium rounded ${zoneStyles[zone]}`}>
+        <span className={`px-2 py-1 text-xs font-medium rounded ${zoneStyles[zone].badge}`}>
           {zoneLabels[zone]}
         </span>
       </div>
-      
+
       <div className="grid grid-cols-2 gap-2 mb-3">
         <div>
           <p className="text-xs text-gray-500">Spent</p>
-          <p className="font-semibold">₹{Math.round(spent).toLocaleString('en-IN')}</p>
+          <p className="font-semibold">{formatCurrency(spent)}</p>
         </div>
         <div>
           <p className="text-xs text-gray-500">Budget</p>
-          <p className="font-semibold">₹{Math.round(budget).toLocaleString('en-IN')}</p>
+          <p className="font-semibold">{formatCurrency(budget)}</p>
         </div>
         <div>
           <p className="text-xs text-gray-500">Remaining</p>
           <p className={`font-semibold ${remaining < 0 ? 'text-red-600' : ''}`}>
-            ₹{Math.round(remaining).toLocaleString('en-IN')}
+            {formatCurrency(remaining)}
           </p>
         </div>
         <div>
@@ -55,11 +45,11 @@ export function ContextMessage({ context, categoryName }: ContextMessageProps) {
 
       <div className="border-t border-gray-200 pt-3 space-y-1">
         <p>
-          <span className="font-semibold">{daysLeft}</span> day{daysLeft !== 1 ? 's' : ''} left ({weeksLeft} week{weeksLeft !== 1 ? 's' : ''})
+          <span className="font-semibold">{daysLeft}</span> {pluralize(daysLeft, 'day')} left ({weeksLeft} {pluralize(weeksLeft, 'week')})
         </p>
         <p>
-          <span className="font-semibold">₹{Math.round(remainingPerDay).toLocaleString('en-IN')}</span>/day or{' '}
-          <span className="font-semibold">₹{Math.round(remainingPerWeek).toLocaleString('en-IN')}</span>/week
+          <span className="font-semibold">{formatCurrency(remainingPerDay)}</span>/day or{' '}
+          <span className="font-semibold">{formatCurrency(remainingPerWeek)}</span>/week
         </p>
       </div>
 

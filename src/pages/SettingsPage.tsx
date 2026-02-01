@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { updateBudget, addCategory, removeCategory, getEffectiveBudget } from '../store/budgetSlice';
 import { CategoryBudgetRow } from '../components/CategoryBudgetRow';
+import { formatCurrency } from '../utils/format';
 
 export function SettingsPage() {
   const dispatch = useAppDispatch();
@@ -45,14 +46,14 @@ export function SettingsPage() {
         <div className="flex justify-between items-center">
           <span className="text-gray-600">Total Monthly Budget</span>
           <span className="text-xl font-semibold text-gray-900">
-            ₹{totalBaseBudget.toLocaleString('en-IN')}
+            {formatCurrency(totalBaseBudget)}
           </span>
         </div>
         {hasAnyAdjustments && (
           <div className="flex justify-between items-center mt-1">
             <span className="text-sm text-blue-600">Effective (with adjustments)</span>
             <span className="text-sm font-medium text-blue-600">
-              ₹{totalEffectiveBudget.toLocaleString('en-IN')}
+              {formatCurrency(totalEffectiveBudget)}
             </span>
           </div>
         )}

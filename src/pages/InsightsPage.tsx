@@ -4,6 +4,7 @@ import { updateBudgetWithScope, getEffectiveBudget } from '../store/budgetSlice'
 import { generateSuggestions, getDecisionStats, calculatePaceProjections } from '../engine/suggestions';
 import { getDaysInMonth } from '../engine/decision';
 import { SuggestionCard } from '../components/SuggestionCard';
+import { formatNumber } from '../utils/format';
 import type { Suggestion } from '../types';
 
 export function InsightsPage() {
@@ -89,7 +90,6 @@ export function InsightsPage() {
         </p>
       </div>
 
-      {/* Decision stats */}
       {stats.total > 0 && (
         <div className="bg-gray-100 rounded-lg p-4 mb-6">
           <h2 className="text-sm font-medium text-gray-700 mb-3">This Month's Decisions</h2>
@@ -114,7 +114,6 @@ export function InsightsPage() {
         </div>
       )}
 
-      {/* Forecast - shown after day 7 for meaningful data */}
       {currentDay >= 7 && (
         <div className="bg-gray-100 rounded-lg p-4 mb-6">
           <h2 className="text-sm font-medium text-gray-700 mb-3">End of Month Forecast</h2>
@@ -127,8 +126,8 @@ export function InsightsPage() {
                     p.projectedDelta >= 0 ? 'text-green-600' : 'text-red-600'
                   }
                 >
-                  {p.projectedDelta >= 0 ? '+' : ''}
-                  {Math.round(p.projectedDelta).toLocaleString('en-IN')}
+                  {p.projectedDelta >= 0 ? '+' : '-'}
+                  {formatNumber(Math.abs(p.projectedDelta))}
                 </span>
               </div>
             ))}
@@ -137,8 +136,8 @@ export function InsightsPage() {
               <span
                 className={netProjection >= 0 ? 'text-green-600' : 'text-red-600'}
               >
-                {netProjection >= 0 ? '+' : ''}
-                {Math.round(netProjection).toLocaleString('en-IN')}
+                {netProjection >= 0 ? '+' : '-'}
+                {formatNumber(Math.abs(netProjection))}
               </span>
             </div>
           </div>
@@ -148,7 +147,6 @@ export function InsightsPage() {
         </div>
       )}
 
-      {/* Suggestions list */}
       <div className="flex-1">
         <h2 className="text-sm font-medium text-gray-700 mb-3">Suggestions</h2>
 

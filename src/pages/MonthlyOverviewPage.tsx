@@ -2,6 +2,8 @@ import { useMemo } from 'react';
 import { useAppSelector } from '../store/hooks';
 import { getEffectiveBudget } from '../store/budgetSlice';
 import { getDaysInMonth } from '../engine/decision';
+import { formatCurrency, formatCompactCurrency } from '../utils/format';
+import { getTotalBudget, getTotalSpent } from '../utils/budget';
 
 export function MonthlyOverviewPage() {
   const { categories, decisionLogs, system } = useAppSelector(
@@ -21,13 +23,11 @@ export function MonthlyOverviewPage() {
     year: 'numeric',
   });
 
-  // Budget summary
-  const totalBudget = categories.reduce((sum, c) => sum + getEffectiveBudget(c), 0);
-  const totalSpent = categories.reduce((sum, c) => sum + c.currentSpent, 0);
+  const totalBudget = getTotalBudget(categories);
+  const totalSpent = getTotalSpent(categories);
   const totalRemaining = totalBudget - totalSpent;
   const spentPercent = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
 
-  // Daily spending data (last 7 days)
   const dailySpending = useMemo(() => {
     const days: { date: string; amount: number; label: string }[] = [];
     const today = new Date(system.today);
@@ -52,13 +52,11 @@ export function MonthlyOverviewPage() {
   const avgDailySpend =
     dailySpending.reduce((sum, d) => sum + d.amount, 0) / 7;
 
-  // Key stats
   const stats = useMemo(() => {
     const transactionCount = decisionLogs.length;
     const avgPerTransaction =
       transactionCount > 0 ? totalSpent / transactionCount : 0;
 
-    // Find peak spending day
     const spendingByDate = decisionLogs.reduce(
       (acc, log) => {
         acc[log.date] = (acc[log.date] || 0) + log.amount;
@@ -91,7 +89,6 @@ export function MonthlyOverviewPage() {
     };
   }, [decisionLogs, totalSpent]);
 
-  // Category breakdown sorted by spent percentage
   const categoryBreakdown = useMemo(() => {
     return [...categories]
       .map((c) => {
@@ -105,20 +102,8 @@ export function MonthlyOverviewPage() {
       .sort((a, b) => b.percent - a.percent);
   }, [categories]);
 
-  const formatCurrency = (amount: number) => {
-    if (amount >= 1000) {
-      return `₹${(amount / 1000).toFixed(amount >= 10000 ? 0 : 1)}k`;
-    }
-    return `₹${amount.toLocaleString('en-IN')}`;
-  };
-
-  const formatFullCurrency = (amount: number) => {
-    return `₹${amount.toLocaleString('en-IN')}`;
-  };
-
   return (
     <div className="flex flex-col min-h-screen pb-20 px-4 pt-6">
-      {/* Month Header */}
       <div className="mb-6">
         <div className="flex justify-between items-baseline mb-2">
           <h1 className="text-2xl font-bold text-gray-900">{monthName}</h1>
@@ -134,7 +119,6 @@ export function MonthlyOverviewPage() {
         </div>
       </div>
 
-      {/* Budget Summary */}
       <div className="bg-gray-100 rounded-lg p-4 mb-4">
         <h2 className="text-sm font-medium text-gray-700 mb-3">
           Budget Summary
@@ -142,13 +126,13 @@ export function MonthlyOverviewPage() {
         <div className="grid grid-cols-3 gap-2 text-center mb-3">
           <div>
             <p className="text-lg font-semibold text-gray-900">
-              {formatFullCurrency(totalBudget)}
+              {formatCurrency(totalBudget)}
             </p>
             <p className="text-xs text-gray-500">Budget</p>
           </div>
           <div>
             <p className="text-lg font-semibold text-gray-900">
-              {formatFullCurrency(totalSpent)}
+              {formatCurrency(totalSpent)}
             </p>
             <p className="text-xs text-gray-500">Spent</p>
           </div>
@@ -158,7 +142,7 @@ export function MonthlyOverviewPage() {
                 totalRemaining >= 0 ? 'text-green-600' : 'text-red-600'
               }`}
             >
-              {formatFullCurrency(Math.abs(totalRemaining))}
+              {formatCurrency(Math.abs(totalRemaining))}
             </p>
             <p className="text-xs text-gray-500">
               {totalRemaining >= 0 ? 'Left' : 'Over'}
@@ -182,7 +166,6 @@ export function MonthlyOverviewPage() {
         </p>
       </div>
 
-      {/* Category Breakdown */}
       <div className="bg-gray-100 rounded-lg p-4 mb-4">
         <h2 className="text-sm font-medium text-gray-700 mb-3">
           Category Breakdown
@@ -195,8 +178,8 @@ export function MonthlyOverviewPage() {
                   {category.name}
                 </span>
                 <span className="text-gray-500 ml-2">
-                  {formatCurrency(category.currentSpent)} /{' '}
-                  {formatCurrency(category.effectiveBudget)}
+                  {formatCompactCurrency(category.currentSpent)} /{' '}
+                  {formatCompactCurrency(category.effectiveBudget)}
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -229,7 +212,6 @@ export function MonthlyOverviewPage() {
         </div>
       </div>
 
-      {/* Daily Spending */}
       <div className="bg-gray-100 rounded-lg p-4 mb-4">
         <h2 className="text-sm font-medium text-gray-700 mb-3">
           Daily Spending (Last 7 Days)
@@ -261,11 +243,10 @@ export function MonthlyOverviewPage() {
           ))}
         </div>
         <p className="text-xs text-gray-500 text-center mt-2">
-          {formatCurrency(avgDailySpend)} avg/day
+          {formatCompactCurrency(avgDailySpend)} avg/day
         </p>
       </div>
 
-      {/* Key Stats */}
       {decisionLogs.length > 0 && (
         <div className="bg-gray-100 rounded-lg p-4">
           <h2 className="text-sm font-medium text-gray-700 mb-3">Key Stats</h2>
@@ -278,7 +259,7 @@ export function MonthlyOverviewPage() {
             </div>
             <div className="bg-white rounded-lg p-3">
               <p className="text-lg font-semibold text-gray-900">
-                {formatCurrency(stats.avgPerTransaction)}
+                {formatCompactCurrency(stats.avgPerTransaction)}
               </p>
               <p className="text-xs text-gray-500">Avg/txn</p>
             </div>
@@ -292,7 +273,6 @@ export function MonthlyOverviewPage() {
         </div>
       )}
 
-      {/* Empty state */}
       {decisionLogs.length === 0 && (
         <div className="text-center py-8 text-gray-500">
           <p>No transactions this month yet.</p>

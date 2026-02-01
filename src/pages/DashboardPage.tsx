@@ -2,20 +2,11 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppSelector } from '../store/hooks';
 import { getEffectiveBudget } from '../store/budgetSlice';
-import { getDaysInMonth, getZone, type Zone } from '../engine/decision';
+import { getDaysInMonth, getZone } from '../engine/decision';
 import { generateSuggestions } from '../engine/suggestions';
-
-const zoneLabels: Record<Zone, string> = {
-  FREE: 'Free Zone',
-  CONTROL: 'Control Zone',
-  STOP: 'Over Budget',
-};
-
-const zoneStyles: Record<Zone, { badge: string; bar: string }> = {
-  FREE: { badge: 'bg-gray-200 text-gray-700', bar: 'bg-gray-400' },
-  CONTROL: { badge: 'bg-yellow-100 text-yellow-800', bar: 'bg-yellow-500' },
-  STOP: { badge: 'bg-red-100 text-red-800', bar: 'bg-red-500' },
-};
+import { zoneLabels, zoneStyles } from '../constants/zones';
+import { formatCurrency, pluralize } from '../utils/format';
+import { getTotalBudget, getTotalSpent } from '../utils/budget';
 
 export function DashboardPage() {
   const budgetState = useAppSelector((state) => state.budget);
@@ -26,8 +17,8 @@ export function DashboardPage() {
   const daysInMonth = getDaysInMonth(todayDate.getFullYear(), todayDate.getMonth());
   const daysLeft = daysInMonth - currentDay;
 
-  const totalBudget = categories.reduce((sum, c) => sum + getEffectiveBudget(c), 0);
-  const totalSpent = categories.reduce((sum, c) => sum + c.currentSpent, 0);
+  const totalBudget = getTotalBudget(categories);
+  const totalSpent = getTotalSpent(categories);
   const totalRemaining = totalBudget - totalSpent;
 
   const suggestions = useMemo(
@@ -49,7 +40,7 @@ export function DashboardPage() {
       <div className="mb-4">
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-sm text-gray-500 mt-1">
-          {formattedDate} — {daysLeft} day{daysLeft !== 1 ? 's' : ''} left
+          {formattedDate} — {daysLeft} {pluralize(daysLeft, 'day')} left
         </p>
       </div>
 
@@ -58,25 +49,24 @@ export function DashboardPage() {
           <div>
             <p className="text-xs text-gray-500">Spent</p>
             <p className="text-lg font-semibold text-gray-900">
-              ₹{totalSpent.toLocaleString('en-IN')}
+              {formatCurrency(totalSpent)}
             </p>
           </div>
           <div>
             <p className="text-xs text-gray-500">Budget</p>
             <p className="text-lg font-semibold text-gray-900">
-              ₹{totalBudget.toLocaleString('en-IN')}
+              {formatCurrency(totalBudget)}
             </p>
           </div>
           <div>
             <p className="text-xs text-gray-500">Remaining</p>
             <p className={`text-lg font-semibold ${totalRemaining < 0 ? 'text-red-600' : 'text-gray-900'}`}>
-              ₹{totalRemaining.toLocaleString('en-IN')}
+              {formatCurrency(totalRemaining)}
             </p>
           </div>
         </div>
       </div>
 
-      {/* Insights banner */}
       {actionableSuggestions.length > 0 && (
         <Link
           to="/insights"
@@ -97,7 +87,7 @@ export function DashboardPage() {
               />
             </svg>
             <span className="text-sm font-medium text-amber-800">
-              {actionableSuggestions.length} suggestion{actionableSuggestions.length !== 1 ? 's' : ''} for you
+              {actionableSuggestions.length} {pluralize(actionableSuggestions.length, 'suggestion')} for you
             </span>
           </div>
           <svg
@@ -136,9 +126,9 @@ export function DashboardPage() {
               </div>
 
               <div className="flex justify-between text-sm text-gray-600 mb-2">
-                <span>₹{category.currentSpent.toLocaleString('en-IN')} spent</span>
+                <span>{formatCurrency(category.currentSpent)} spent</span>
                 <span className={remaining < 0 ? 'text-red-600' : ''}>
-                  ₹{remaining.toLocaleString('en-IN')} left
+                  {formatCurrency(remaining)} left
                 </span>
               </div>
 
@@ -150,7 +140,7 @@ export function DashboardPage() {
               </div>
 
               <p className="text-xs text-gray-500 mt-2 text-right">
-                of ₹{effectiveBudget.toLocaleString('en-IN')}
+                of {formatCurrency(effectiveBudget)}
                 {hasTemporaryAdjustment && (
                   <span className="text-blue-500 ml-1">(adjusted this month)</span>
                 )}

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { resetToDefaults } from '../store/budgetSlice';
+import { formatCurrency } from '../utils/format';
 
 export function DebugPage() {
   const dispatch = useAppDispatch();
@@ -51,7 +52,6 @@ export function DebugPage() {
       <h1 className="text-2xl font-bold text-gray-900 mb-2">Debug</h1>
       <p className="text-gray-600 mb-6">View all stored data</p>
 
-      {/* Action Buttons */}
       <div className="flex gap-2 mb-6">
         <button
           onClick={handleExport}
@@ -73,7 +73,6 @@ export function DebugPage() {
         </button>
       </div>
 
-      {/* System Info */}
       <section className="mb-6">
         <h2 className="text-sm font-semibold text-gray-500 uppercase mb-2">
           System
@@ -92,7 +91,6 @@ export function DebugPage() {
         </div>
       </section>
 
-      {/* Categories */}
       <section className="mb-6">
         <h2 className="text-sm font-semibold text-gray-500 uppercase mb-2">
           Categories ({categories.length})
@@ -116,10 +114,10 @@ export function DebugPage() {
                     </div>
                   </td>
                   <td className="text-right px-3 py-2 font-mono text-gray-900">
-                    ₹{cat.monthlyBudget.toLocaleString('en-IN')}
+                    {formatCurrency(cat.monthlyBudget)}
                   </td>
                   <td className="text-right px-3 py-2 font-mono text-gray-900">
-                    ₹{cat.currentSpent.toLocaleString('en-IN')}
+                    {formatCurrency(cat.currentSpent)}
                   </td>
                 </tr>
               ))}
@@ -128,7 +126,6 @@ export function DebugPage() {
         </div>
       </section>
 
-      {/* Current Month Snapshot */}
       <section className="mb-6">
         <h2 className="text-sm font-semibold text-gray-500 uppercase mb-2">
           Month Snapshot
@@ -155,7 +152,6 @@ export function DebugPage() {
         </div>
       </section>
 
-      {/* Current Month Logs */}
       <section className="mb-6">
         <h2 className="text-sm font-semibold text-gray-500 uppercase mb-2">
           Current Month Logs ({decisionLogs.length})
@@ -187,7 +183,7 @@ export function DebugPage() {
                       {getCategoryName(log.categoryId)}
                     </td>
                     <td className="text-right px-3 py-2 font-mono text-gray-900">
-                      ₹{log.amount.toLocaleString('en-IN')}
+                      {formatCurrency(log.amount)}
                     </td>
                     <td className="text-center px-3 py-2">
                       <span
@@ -211,7 +207,6 @@ export function DebugPage() {
         </div>
       </section>
 
-      {/* Archived Logs */}
       <section className="mb-6">
         <button
           onClick={() => setExpandedArchive(!expandedArchive)}
@@ -264,7 +259,7 @@ export function DebugPage() {
                         {getCategoryName(log.categoryId)}
                       </td>
                       <td className="text-right px-3 py-2 font-mono text-gray-900">
-                        ₹{log.amount.toLocaleString('en-IN')}
+                        {formatCurrency(log.amount)}
                       </td>
                       <td className="text-center px-3 py-2">
                         <span
@@ -288,7 +283,6 @@ export function DebugPage() {
         )}
       </section>
 
-      {/* Confirm Reset Modal */}
       {showConfirmReset && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl p-6 max-w-sm w-full">

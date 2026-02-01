@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { updateTransaction, deleteTransaction } from '../store/budgetSlice';
+import { formatCurrency, pluralize } from '../utils/format';
 
 export function TransactionsPage() {
   const dispatch = useAppDispatch();
@@ -55,14 +56,14 @@ export function TransactionsPage() {
     <div className="flex flex-col min-h-screen pb-20 px-4 pt-6">
       <h1 className="text-2xl font-bold text-gray-900 mb-2">Transactions</h1>
       <p className="text-gray-600 mb-4">
-        {boughtLogs.length} purchase{boughtLogs.length !== 1 ? 's' : ''} this month
+        {boughtLogs.length} {pluralize(boughtLogs.length, 'purchase')} this month
       </p>
 
       <div className="bg-gray-100 rounded-lg p-4 mb-6">
         <div className="flex justify-between items-center">
           <span className="text-gray-600">Total Spent</span>
           <span className="text-xl font-semibold text-gray-900">
-            ₹{totalSpent.toLocaleString('en-IN')}
+            {formatCurrency(totalSpent)}
           </span>
         </div>
       </div>
@@ -115,7 +116,7 @@ export function TransactionsPage() {
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-lg font-semibold text-gray-900">
-                      ₹{log.amount.toLocaleString('en-IN')}
+                      {formatCurrency(log.amount)}
                     </span>
                     <button
                       onClick={() => handleEdit(log.id, log.amount)}

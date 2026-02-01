@@ -1,4 +1,5 @@
 import type { Decision } from '../types';
+import { formatCurrency, pluralize } from '../utils/format';
 
 interface DecisionResultProps {
   decision: Decision;
@@ -18,7 +19,7 @@ export function DecisionResult({ decision, amount, categoryName, today }: Decisi
         </div>
         <span className="text-4xl font-bold text-emerald-600">Go ahead</span>
         <p className="text-lg text-gray-600 mt-3">
-          ₹{amount.toLocaleString('en-IN')} for {categoryName}
+          {formatCurrency(amount)} for {categoryName}
         </p>
       </div>
     );
@@ -41,10 +42,10 @@ export function DecisionResult({ decision, amount, categoryName, today }: Decisi
           </svg>
         </div>
         <span className="text-4xl font-bold text-amber-600">
-          Wait {decision.days} day{decision.days !== 1 ? 's' : ''}
+          Wait {decision.days} {pluralize(decision.days, 'day')}
         </span>
         <p className="text-lg text-gray-600 mt-3">
-          ₹{amount.toLocaleString('en-IN')} for {categoryName}
+          {formatCurrency(amount)} for {categoryName}
         </p>
         <p className="text-sm text-gray-500 mt-1">
           Buy on {formattedBuyDate}
@@ -62,7 +63,7 @@ export function DecisionResult({ decision, amount, categoryName, today }: Decisi
       </div>
       <span className="text-4xl font-bold text-red-600">Over budget</span>
       <p className="text-lg text-gray-600 mt-3">
-        ₹{amount.toLocaleString('en-IN')} for {categoryName}
+        {formatCurrency(amount)} for {categoryName}
       </p>
     </div>
   );

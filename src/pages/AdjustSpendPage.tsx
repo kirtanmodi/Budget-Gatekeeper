@@ -1,6 +1,8 @@
 import { useAppSelector, useAppDispatch } from '../store/hooks';
-import { setSpent, resetAllSpent, resetToDefaults, getEffectiveBudget } from '../store/budgetSlice';
+import { setSpent, resetAllSpent, resetToDefaults } from '../store/budgetSlice';
 import { CategorySpendRow } from '../components/CategorySpendRow';
+import { formatCurrency } from '../utils/format';
+import { getTotalBudget, getTotalSpent } from '../utils/budget';
 
 export function AdjustSpendPage() {
   const dispatch = useAppDispatch();
@@ -22,8 +24,8 @@ export function AdjustSpendPage() {
     }
   };
 
-  const totalBudget = categories.reduce((sum, c) => sum + getEffectiveBudget(c), 0);
-  const totalSpent = categories.reduce((sum, c) => sum + c.currentSpent, 0);
+  const totalBudget = getTotalBudget(categories);
+  const totalSpent = getTotalSpent(categories);
 
   return (
     <div className="flex flex-col min-h-screen pb-20 px-4 pt-6">
@@ -51,13 +53,13 @@ export function AdjustSpendPage() {
         <div className="flex justify-between items-center">
           <span className="text-gray-600">Total Spent</span>
           <span className="text-xl font-semibold text-gray-900">
-            ₹{totalSpent.toLocaleString('en-IN')}
+            {formatCurrency(totalSpent)}
           </span>
         </div>
         <div className="flex justify-between items-center mt-1">
           <span className="text-gray-600">Total Budget</span>
           <span className="text-gray-600">
-            ₹{totalBudget.toLocaleString('en-IN')}
+            {formatCurrency(totalBudget)}
           </span>
         </div>
       </div>

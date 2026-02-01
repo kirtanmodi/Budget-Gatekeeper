@@ -8,6 +8,7 @@ import { PostDecisionActions } from '../components/PostDecisionActions';
 import { UndoToast } from '../components/UndoToast';
 import { calculateDecision, calculateContext, getDaysInMonth } from '../engine/decision';
 import { triggerHaptic } from '../utils/haptics';
+import { formatCurrency, pluralize } from '../utils/format';
 import type { Decision } from '../types';
 
 type FlowState = 'input' | 'result';
@@ -91,7 +92,7 @@ export function CheckPage() {
       })
     );
 
-    setUndoMessage(`Bought ₹${amount.toLocaleString('en-IN')} in ${categoryName}`);
+    setUndoMessage(`Bought ${formatCurrency(amount)} in ${categoryName}`);
     setShowUndo(true);
     resetFlow();
   };
@@ -178,7 +179,7 @@ export function CheckPage() {
               <div className="text-center">
                 <p className="text-xs text-gray-500 mb-1">Before</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  ₹{Math.round(remainingBefore).toLocaleString('en-IN')}
+                  {formatCurrency(remainingBefore)}
                 </p>
               </div>
               <div className="text-gray-400">
@@ -189,12 +190,12 @@ export function CheckPage() {
               <div className="text-center">
                 <p className="text-xs text-gray-500 mb-1">After</p>
                 <p className={`text-2xl font-bold ${remainingAfter < 0 ? 'text-red-600' : 'text-gray-900'}`}>
-                  ₹{Math.round(remainingAfter).toLocaleString('en-IN')}
+                  {formatCurrency(remainingAfter)}
                 </p>
               </div>
             </div>
             <p className="text-sm text-gray-500 text-center mt-3">
-              {daysLeft} day{daysLeft !== 1 ? 's' : ''} left · ₹{Math.round(dailyAfter).toLocaleString('en-IN')}/day after
+              {daysLeft} {pluralize(daysLeft, 'day')} left · {formatCurrency(dailyAfter)}/day after
             </p>
           </div>
 

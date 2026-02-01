@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import type { Category } from '../types';
 import { calculateDecision, getDaysInMonth } from '../engine/decision';
+import { formatCurrency } from '../utils/format';
 
 interface ExpenseFormProps {
   categories: Category[];
@@ -84,7 +85,7 @@ export function ExpenseForm({ categories, today, onCheck, disabled, lastUsedCate
               onClick={() => handleQuickAmount(amt)}
               className="px-3 py-2 text-sm bg-gray-100 rounded-lg active:bg-gray-200 min-h-[44px]"
             >
-              ₹{amt.toLocaleString('en-IN')}
+              {formatCurrency(amt)}
             </button>
           ))}
         </div>

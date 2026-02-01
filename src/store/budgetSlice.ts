@@ -235,6 +235,6 @@ const budgetSlice = createSlice({
   },
 });
 
-export const { logDecision, setSpent, updateBudget, updateBudgetWithScope, startNewMonth, syncToday, resetAllSpent, resetToDefaults, updateTransaction, deleteTransaction, setLastUsedCategory, undoLastDecision, addCategory, removeCategory } =
+export const { logDecision, setSpent, updateBudget, updateBudgetWithScope, syncToday, resetAllSpent, resetToDefaults, updateTransaction, deleteTransaction, setLastUsedCategory, undoLastDecision, addCategory, removeCategory } =
   budgetSlice.actions;
 export default budgetSlice.reducer;

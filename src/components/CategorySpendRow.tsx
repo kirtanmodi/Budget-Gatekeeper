@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Category } from '../types';
+import { formatCurrency } from '../utils/format';
 
 interface CategorySpendRowProps {
   category: Category;
@@ -39,7 +40,7 @@ export function CategorySpendRow({ category, onSpentChange }: CategorySpendRowPr
       <div className="flex-1">
         <p className="font-medium text-gray-900">{category.name}</p>
         <p className="text-sm text-gray-500">
-          Budget: ₹{category.monthlyBudget.toLocaleString('en-IN')} ({percentUsed.toFixed(0)}% used)
+          Budget: {formatCurrency(category.monthlyBudget)} ({percentUsed.toFixed(0)}% used)
         </p>
       </div>
       <div className="flex items-center">
