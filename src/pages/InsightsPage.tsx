@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
-import { updateBudget } from '../store/budgetSlice';
+import { updateBudgetWithScope, getEffectiveBudget } from '../store/budgetSlice';
 import { generateSuggestions, getDecisionStats, calculatePaceProjections } from '../engine/suggestions';
 import { getDaysInMonth } from '../engine/decision';
 import { SuggestionCard } from '../components/SuggestionCard';
@@ -35,14 +35,15 @@ export function InsightsPage() {
     0
   );
 
-  const handleAction = (suggestion: Suggestion) => {
+  const handleAction = (suggestion: Suggestion, permanent: boolean) => {
     if (!suggestion.action) return;
 
     if (suggestion.action.type === 'UPDATE_BUDGET') {
       dispatch(
-        updateBudget({
+        updateBudgetWithScope({
           categoryId: suggestion.action.categoryId,
           newBudget: suggestion.action.amount,
+          permanent,
         })
       );
       setDismissedIds((prev) => new Set([...prev, suggestion.id]));
@@ -54,16 +55,20 @@ export function InsightsPage() {
       const toCategory = categories.find((c) => c.id === targetCategoryId);
 
       if (fromCategory && toCategory) {
+        const fromEffective = getEffectiveBudget(fromCategory);
+        const toEffective = getEffectiveBudget(toCategory);
         dispatch(
-          updateBudget({
+          updateBudgetWithScope({
             categoryId: categoryId,
-            newBudget: fromCategory.monthlyBudget - amount,
+            newBudget: fromEffective - amount,
+            permanent,
           })
         );
         dispatch(
-          updateBudget({
+          updateBudgetWithScope({
             categoryId: targetCategoryId,
-            newBudget: toCategory.monthlyBudget + amount,
+            newBudget: toEffective + amount,
+            permanent,
           })
         );
         setDismissedIds((prev) => new Set([...prev, suggestion.id]));

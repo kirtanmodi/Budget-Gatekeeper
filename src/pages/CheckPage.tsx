@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useRef } from 'react';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
-import { logDecision, setLastUsedCategory, undoLastDecision } from '../store/budgetSlice';
+import { logDecision, setLastUsedCategory, undoLastDecision, getEffectiveBudget } from '../store/budgetSlice';
 import { ExpenseForm } from '../components/ExpenseForm';
 import { ContextMessage } from '../components/ContextMessage';
 import { DecisionResult } from '../components/DecisionResult';
@@ -40,7 +40,7 @@ export function CheckPage() {
   const context = useMemo(() => {
     if (!selectedCategory) return null;
     return calculateContext(
-      selectedCategory.monthlyBudget,
+      getEffectiveBudget(selectedCategory),
       selectedCategory.currentSpent,
       currentDay,
       daysInMonth
@@ -56,7 +56,7 @@ export function CheckPage() {
     if (!category) return;
 
     const result = calculateDecision(
-      category.monthlyBudget,
+      getEffectiveBudget(category),
       category.currentSpent,
       checkAmount,
       currentDay,

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useAppSelector } from '../store/hooks';
+import { getEffectiveBudget } from '../store/budgetSlice';
 import { getDaysInMonth } from '../engine/decision';
 
 export function MonthlyOverviewPage() {
@@ -21,7 +22,7 @@ export function MonthlyOverviewPage() {
   });
 
   // Budget summary
-  const totalBudget = categories.reduce((sum, c) => sum + c.monthlyBudget, 0);
+  const totalBudget = categories.reduce((sum, c) => sum + getEffectiveBudget(c), 0);
   const totalSpent = categories.reduce((sum, c) => sum + c.currentSpent, 0);
   const totalRemaining = totalBudget - totalSpent;
   const spentPercent = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
@@ -93,10 +94,14 @@ export function MonthlyOverviewPage() {
   // Category breakdown sorted by spent percentage
   const categoryBreakdown = useMemo(() => {
     return [...categories]
-      .map((c) => ({
-        ...c,
-        percent: c.monthlyBudget > 0 ? (c.currentSpent / c.monthlyBudget) * 100 : 0,
-      }))
+      .map((c) => {
+        const effectiveBudget = getEffectiveBudget(c);
+        return {
+          ...c,
+          effectiveBudget,
+          percent: effectiveBudget > 0 ? (c.currentSpent / effectiveBudget) * 100 : 0,
+        };
+      })
       .sort((a, b) => b.percent - a.percent);
   }, [categories]);
 
@@ -191,7 +196,7 @@ export function MonthlyOverviewPage() {
                 </span>
                 <span className="text-gray-500 ml-2">
                   {formatCurrency(category.currentSpent)} /{' '}
-                  {formatCurrency(category.monthlyBudget)}
+                  {formatCurrency(category.effectiveBudget)}
                 </span>
               </div>
               <div className="flex items-center gap-2">

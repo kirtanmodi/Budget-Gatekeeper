@@ -1,5 +1,5 @@
 import { useAppSelector, useAppDispatch } from '../store/hooks';
-import { setSpent, resetAllSpent, resetToDefaults } from '../store/budgetSlice';
+import { setSpent, resetAllSpent, resetToDefaults, getEffectiveBudget } from '../store/budgetSlice';
 import { CategorySpendRow } from '../components/CategorySpendRow';
 
 export function AdjustSpendPage() {
@@ -22,7 +22,7 @@ export function AdjustSpendPage() {
     }
   };
 
-  const totalBudget = categories.reduce((sum, c) => sum + c.monthlyBudget, 0);
+  const totalBudget = categories.reduce((sum, c) => sum + getEffectiveBudget(c), 0);
   const totalSpent = categories.reduce((sum, c) => sum + c.currentSpent, 0);
 
   return (

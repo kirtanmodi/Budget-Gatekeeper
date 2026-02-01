@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppSelector } from '../store/hooks';
+import { getEffectiveBudget } from '../store/budgetSlice';
 import { getDaysInMonth, getZone, type Zone } from '../engine/decision';
 import { generateSuggestions } from '../engine/suggestions';
 
@@ -25,7 +26,7 @@ export function DashboardPage() {
   const daysInMonth = getDaysInMonth(todayDate.getFullYear(), todayDate.getMonth());
   const daysLeft = daysInMonth - currentDay;
 
-  const totalBudget = categories.reduce((sum, c) => sum + c.monthlyBudget, 0);
+  const totalBudget = categories.reduce((sum, c) => sum + getEffectiveBudget(c), 0);
   const totalSpent = categories.reduce((sum, c) => sum + c.currentSpent, 0);
   const totalRemaining = totalBudget - totalSpent;
 
@@ -117,11 +118,13 @@ export function DashboardPage() {
 
       <div className="flex-1 space-y-3">
         {categories.map((category) => {
-          const zone = getZone(category.currentSpent, category.monthlyBudget);
-          const percent = category.monthlyBudget > 0
-            ? Math.min(100, (category.currentSpent / category.monthlyBudget) * 100)
+          const effectiveBudget = getEffectiveBudget(category);
+          const zone = getZone(category.currentSpent, effectiveBudget);
+          const percent = effectiveBudget > 0
+            ? Math.min(100, (category.currentSpent / effectiveBudget) * 100)
             : 0;
-          const remaining = category.monthlyBudget - category.currentSpent;
+          const remaining = effectiveBudget - category.currentSpent;
+          const hasTemporaryAdjustment = category.temporaryAdjustment !== undefined && category.temporaryAdjustment !== 0;
 
           return (
             <div key={category.id} className="bg-white border border-gray-200 rounded-lg p-4">
@@ -147,7 +150,10 @@ export function DashboardPage() {
               </div>
 
               <p className="text-xs text-gray-500 mt-2 text-right">
-                of ₹{category.monthlyBudget.toLocaleString('en-IN')}
+                of ₹{effectiveBudget.toLocaleString('en-IN')}
+                {hasTemporaryAdjustment && (
+                  <span className="text-blue-500 ml-1">(adjusted this month)</span>
+                )}
               </p>
             </div>
           );

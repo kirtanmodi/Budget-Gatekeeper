@@ -1,6 +1,9 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type { BudgetState, DecisionLog, MonthSnapshot } from '../types';
+import type { BudgetState, Category, DecisionLog, MonthSnapshot } from '../types';
 import { defaultCategories } from '../data/defaultCategories';
+
+export const getEffectiveBudget = (category: Category): number =>
+  category.monthlyBudget + (category.temporaryAdjustment ?? 0);
 
 const getInitialToday = (): string => {
   return new Date().toISOString().split('T')[0];
@@ -85,12 +88,33 @@ const budgetSlice = createSlice({
       }
     },
 
+    updateBudgetWithScope: (
+      state,
+      action: PayloadAction<{
+        categoryId: string;
+        newBudget: number;
+        permanent: boolean;
+      }>
+    ) => {
+      const { categoryId, newBudget, permanent } = action.payload;
+      const category = state.categories.find((c) => c.id === categoryId);
+      if (!category) return;
+
+      if (permanent) {
+        category.monthlyBudget = newBudget;
+        category.temporaryAdjustment = undefined;
+      } else {
+        category.temporaryAdjustment = newBudget - category.monthlyBudget;
+      }
+    },
+
     startNewMonth: (state) => {
       state.archivedLogs = [...state.archivedLogs, ...state.decisionLogs];
       state.decisionLogs = [];
 
       state.categories.forEach((category) => {
         category.currentSpent = 0;
+        category.temporaryAdjustment = undefined;
       });
 
       const today = new Date(state.system.today);
@@ -121,6 +145,7 @@ const budgetSlice = createSlice({
         state.decisionLogs = [];
         state.categories.forEach((category) => {
           category.currentSpent = 0;
+          category.temporaryAdjustment = undefined;
         });
         state.currentSnapshot = {
           month: newDate.getMonth(),
@@ -210,6 +235,6 @@ const budgetSlice = createSlice({
   },
 });
 
-export const { logDecision, setSpent, updateBudget, startNewMonth, syncToday, resetAllSpent, resetToDefaults, updateTransaction, deleteTransaction, setLastUsedCategory, undoLastDecision, addCategory, removeCategory } =
+export const { logDecision, setSpent, updateBudget, updateBudgetWithScope, startNewMonth, syncToday, resetAllSpent, resetToDefaults, updateTransaction, deleteTransaction, setLastUsedCategory, undoLastDecision, addCategory, removeCategory } =
   budgetSlice.actions;
 export default budgetSlice.reducer;

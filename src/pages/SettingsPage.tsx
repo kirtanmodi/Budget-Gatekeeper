@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
-import { updateBudget, addCategory, removeCategory } from '../store/budgetSlice';
+import { updateBudget, addCategory, removeCategory, getEffectiveBudget } from '../store/budgetSlice';
 import { CategoryBudgetRow } from '../components/CategoryBudgetRow';
 
 export function SettingsPage() {
@@ -30,7 +30,9 @@ export function SettingsPage() {
     }
   };
 
-  const totalBudget = categories.reduce((sum, c) => sum + c.monthlyBudget, 0);
+  const totalBaseBudget = categories.reduce((sum, c) => sum + c.monthlyBudget, 0);
+  const totalEffectiveBudget = categories.reduce((sum, c) => sum + getEffectiveBudget(c), 0);
+  const hasAnyAdjustments = totalBaseBudget !== totalEffectiveBudget;
 
   return (
     <div className="flex flex-col min-h-screen pb-20 px-4 pt-6">
@@ -43,9 +45,17 @@ export function SettingsPage() {
         <div className="flex justify-between items-center">
           <span className="text-gray-600">Total Monthly Budget</span>
           <span className="text-xl font-semibold text-gray-900">
-            ₹{totalBudget.toLocaleString('en-IN')}
+            ₹{totalBaseBudget.toLocaleString('en-IN')}
           </span>
         </div>
+        {hasAnyAdjustments && (
+          <div className="flex justify-between items-center mt-1">
+            <span className="text-sm text-blue-600">Effective (with adjustments)</span>
+            <span className="text-sm font-medium text-blue-600">
+              ₹{totalEffectiveBudget.toLocaleString('en-IN')}
+            </span>
+          </div>
+        )}
         {currentSnapshot && (
           <p className="text-xs text-gray-500 mt-2">
             Changes apply immediately. Month snapshot taken at start of{' '}

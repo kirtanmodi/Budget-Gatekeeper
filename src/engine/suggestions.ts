@@ -7,6 +7,7 @@ import type {
   PaceProjection,
 } from '../types';
 import { getDaysInMonth } from './decision';
+import { getEffectiveBudget } from '../store/budgetSlice';
 
 const WAIT_RATIO_THRESHOLD = 0.4;
 const UNDERUTILIZED_THRESHOLD = 0.5;
@@ -19,6 +20,7 @@ export function analyzeDecisionOutcomes(
   const analysisMap = new Map<string, CategoryAnalysis>();
 
   for (const category of categories) {
+    const effectiveBudget = getEffectiveBudget(category);
     analysisMap.set(category.id, {
       categoryId: category.id,
       categoryName: category.name,
@@ -27,11 +29,11 @@ export function analyzeDecisionOutcomes(
       waitCount: 0,
       noCount: 0,
       waitRatio: 0,
-      budget: category.monthlyBudget,
+      budget: effectiveBudget,
       spent: category.currentSpent,
       usedPercent:
-        category.monthlyBudget > 0
-          ? (category.currentSpent / category.monthlyBudget) * 100
+        effectiveBudget > 0
+          ? (category.currentSpent / effectiveBudget) * 100
           : 0,
     });
   }
@@ -64,17 +66,18 @@ export function calculatePaceProjections(
   if (currentDay <= 0) return [];
 
   return categories.map((category) => {
+    const effectiveBudget = getEffectiveBudget(category);
     const dailyBurnRate = category.currentSpent / currentDay;
     const projectedEndSpend = dailyBurnRate * daysInMonth;
-    const projectedDelta = category.monthlyBudget - projectedEndSpend;
+    const projectedDelta = effectiveBudget - projectedEndSpend;
 
     return {
       categoryId: category.id,
       categoryName: category.name,
       projectedEndSpend,
-      budget: category.monthlyBudget,
+      budget: effectiveBudget,
       projectedDelta,
-      isOverspending: projectedEndSpend > category.monthlyBudget,
+      isOverspending: projectedEndSpend > effectiveBudget,
     };
   });
 }
