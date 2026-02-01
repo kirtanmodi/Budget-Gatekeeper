@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { logDecision, setLastUsedCategory, undoLastDecision } from '../store/budgetSlice';
 import { ExpenseForm } from '../components/ExpenseForm';
@@ -24,6 +24,8 @@ export function CheckPage() {
   const [decision, setDecision] = useState<Decision | null>(null);
   const [showUndo, setShowUndo] = useState(false);
   const [undoMessage, setUndoMessage] = useState('');
+
+  const touchStartX = useRef<number>(0);
 
   const todayDate = useMemo(() => new Date(today), [today]);
   const currentDay = todayDate.getDate();
@@ -128,6 +130,19 @@ export function CheckPage() {
     setDecision(null);
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const delta = e.changedTouches[0].clientX - touchStartX.current;
+    if (delta > 100) {
+      handleBought();
+    } else if (delta < -100) {
+      handleSkipped();
+    }
+  };
+
   const formattedDate = todayDate.toLocaleDateString('en-IN', {
     weekday: 'long',
     day: 'numeric',
@@ -154,7 +169,11 @@ export function CheckPage() {
       )}
 
       {flowState === 'result' && selectedCategory && context && decision && (
-        <div className="flex flex-col gap-6">
+        <div
+          className="flex flex-col gap-6"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           <div className="text-center">
             <p className="text-lg text-gray-600">
               ₹{amount.toLocaleString('en-IN')} for {selectedCategory.name}
@@ -185,6 +204,10 @@ export function CheckPage() {
           </div>
 
           <PostDecisionActions onBought={handleBought} onSkipped={handleSkipped} />
+
+          <p className="text-xs text-gray-400 text-center">
+            Swipe right for Bought · Swipe left for Skipped
+          </p>
 
           <button
             onClick={resetFlow}
