@@ -1,10 +1,6 @@
 import { NavLink } from 'react-router-dom';
 
-interface NavBarProps {
-  onMenuClick: () => void;
-}
-
-export function NavBar({ onMenuClick }: NavBarProps) {
+export function NavBar() {
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `flex flex-col items-center justify-center flex-1 py-3 min-h-[56px] ${
       isActive ? 'text-gray-900' : 'text-gray-400'
@@ -47,10 +43,7 @@ export function NavBar({ onMenuClick }: NavBarProps) {
           <span className="text-xs mt-1">Dashboard</span>
         </NavLink>
 
-        <button
-          onClick={onMenuClick}
-          className="flex flex-col items-center justify-center flex-1 py-3 min-h-[56px] text-gray-400 active:text-gray-900"
-        >
+        <NavLink to="/transactions" className={linkClass}>
           <svg
             className="w-6 h-6"
             fill="none"
@@ -61,11 +54,11 @@ export function NavBar({ onMenuClick }: NavBarProps) {
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
-              d="M4 6h16M4 12h16M4 18h16"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <span className="text-xs mt-1">Menu</span>
-        </button>
+          <span className="text-xs mt-1">History</span>
+        </NavLink>
       </div>
     </nav>
   );

@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -90,6 +90,11 @@ const menuItems = [
 ];
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef(0);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+
   // Prevent body scroll when sidebar is open
   useEffect(() => {
     if (isOpen) {
@@ -113,6 +118,30 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    setIsDragging(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    const currentX = e.touches[0].clientX;
+    const diff = currentX - touchStartX.current;
+    // Only allow dragging left (negative values)
+    if (diff < 0) {
+      setDragOffset(diff);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    // Close if dragged more than 80px left
+    if (dragOffset < -80) {
+      onClose();
+    }
+    setDragOffset(0);
+  };
+
   return (
     <>
       {/* Overlay */}
@@ -120,14 +149,20 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 ${
           isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
+        style={{ opacity: isOpen ? Math.max(0, 0.5 + dragOffset / 512) : 0 }}
         onClick={onClose}
       />
 
       {/* Sidebar panel */}
       <div
-        className={`fixed top-0 left-0 h-full w-64 bg-white z-50 transform transition-transform duration-300 ease-out ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        ref={sidebarRef}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        className={`fixed top-0 left-0 h-full w-64 bg-white z-50 transform ${
+          isDragging ? '' : 'transition-transform duration-300 ease-out'
+        } ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
+        style={{ transform: isOpen ? `translateX(${dragOffset}px)` : 'translateX(-100%)' }}
       >
         <div className="flex flex-col h-full">
           {/* Header */}
