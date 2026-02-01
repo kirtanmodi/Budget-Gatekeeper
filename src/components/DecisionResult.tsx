@@ -1,23 +1,25 @@
 import type { Decision } from '../types';
 
-interface WaitContext {
-  remainingAfterPurchase: number;
-  daysLeftAfterPurchase: number;
-  weeksLeftAfterPurchase: number;
-  currentDailyRate: number;
-}
-
 interface DecisionResultProps {
   decision: Decision;
+  amount: number;
+  categoryName: string;
   today: string;
-  waitContext?: WaitContext;
 }
 
-export function DecisionResult({ decision, today, waitContext }: DecisionResultProps) {
+export function DecisionResult({ decision, amount, categoryName, today }: DecisionResultProps) {
   if (decision.type === 'YES') {
     return (
-      <div className="flex flex-col items-center justify-center py-8">
-        <span className="text-5xl font-bold text-gray-900">YES</span>
+      <div className="flex flex-col items-center justify-center py-10">
+        <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
+          <svg className="w-10 h-10 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <span className="text-4xl font-bold text-emerald-600">Go ahead</span>
+        <p className="text-lg text-gray-600 mt-3">
+          ₹{amount.toLocaleString('en-IN')} for {categoryName}
+        </p>
       </div>
     );
   }
@@ -26,51 +28,42 @@ export function DecisionResult({ decision, today, waitContext }: DecisionResultP
     const buyDate = new Date(today);
     buyDate.setDate(buyDate.getDate() + decision.days);
     const formattedBuyDate = buyDate.toLocaleDateString('en-IN', {
-      weekday: 'long',
+      weekday: 'short',
       day: 'numeric',
       month: 'short',
     });
 
     return (
-      <div className="flex flex-col items-center justify-center py-8">
-        <span className="text-5xl font-bold text-gray-900">WAIT</span>
-        <span className="text-2xl text-gray-600 mt-2">
-          {decision.days} day{decision.days !== 1 ? 's' : ''}
+      <div className="flex flex-col items-center justify-center py-10">
+        <div className="w-20 h-20 rounded-full bg-amber-100 flex items-center justify-center mb-4">
+          <svg className="w-10 h-10 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <span className="text-4xl font-bold text-amber-600">
+          Wait {decision.days} day{decision.days !== 1 ? 's' : ''}
         </span>
-        <span className="text-lg text-gray-500 mt-1">
+        <p className="text-lg text-gray-600 mt-3">
+          ₹{amount.toLocaleString('en-IN')} for {categoryName}
+        </p>
+        <p className="text-sm text-gray-500 mt-1">
           Buy on {formattedBuyDate}
-        </span>
-        {waitContext && (
-          <div className="mt-4 text-center">
-            <p className="text-sm text-gray-600">
-              You'll have{' '}
-              <span className="font-semibold">
-                ₹{Math.round(waitContext.remainingAfterPurchase).toLocaleString('en-IN')}
-              </span>{' '}
-              left for {waitContext.daysLeftAfterPurchase} day{waitContext.daysLeftAfterPurchase !== 1 ? 's' : ''}{' '}
-              ({waitContext.weeksLeftAfterPurchase} week{waitContext.weeksLeftAfterPurchase !== 1 ? 's' : ''})
-            </p>
-            {(() => {
-              const improvedDailyRate = waitContext.remainingAfterPurchase / waitContext.daysLeftAfterPurchase;
-              const improvement = improvedDailyRate - waitContext.currentDailyRate;
-              if (improvement > 0) {
-                return (
-                  <p className="text-xs text-green-700 mt-2">
-                    ₹{Math.round(improvedDailyRate).toLocaleString('en-IN')}/day vs ₹{Math.round(waitContext.currentDailyRate).toLocaleString('en-IN')}/day if you buy today
-                  </p>
-                );
-              }
-              return null;
-            })()}
-          </div>
-        )}
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center justify-center py-8">
-      <span className="text-5xl font-bold text-gray-900">NO</span>
+    <div className="flex flex-col items-center justify-center py-10">
+      <div className="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center mb-4">
+        <svg className="w-10 h-10 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </div>
+      <span className="text-4xl font-bold text-red-600">Over budget</span>
+      <p className="text-lg text-gray-600 mt-3">
+        ₹{amount.toLocaleString('en-IN')} for {categoryName}
+      </p>
     </div>
   );
 }

@@ -24,6 +24,7 @@ export function CheckPage() {
   const [decision, setDecision] = useState<Decision | null>(null);
   const [showUndo, setShowUndo] = useState(false);
   const [undoMessage, setUndoMessage] = useState('');
+  const [showDetails, setShowDetails] = useState(false);
 
   const touchStartX = useRef<number>(0);
 
@@ -46,25 +47,10 @@ export function CheckPage() {
     );
   }, [selectedCategory, currentDay, daysInMonth]);
 
-  const waitContext = useMemo(() => {
-    if (!decision || decision.type !== 'WAIT' || !selectedCategory) return undefined;
-    const buyDay = currentDay + decision.days;
-    const daysLeftAfterPurchase = Math.max(1, daysInMonth - buyDay);
-    const weeksLeftAfterPurchase = Math.max(1, Math.ceil(daysLeftAfterPurchase / 7));
-    const remainingAfterPurchase = selectedCategory.monthlyBudget - selectedCategory.currentSpent - amount;
-    const daysLeftToday = Math.max(1, daysInMonth - currentDay);
-    const currentDailyRate = (selectedCategory.monthlyBudget - selectedCategory.currentSpent - amount) / daysLeftToday;
-    return {
-      remainingAfterPurchase,
-      daysLeftAfterPurchase,
-      weeksLeftAfterPurchase,
-      currentDailyRate,
-    };
-  }, [decision, selectedCategory, currentDay, daysInMonth, amount]);
-
   const handleCheck = (categoryId: string, checkAmount: number) => {
     setSelectedCategoryId(categoryId);
     setAmount(checkAmount);
+    setShowDetails(false);
 
     const category = categories.find((c) => c.id === categoryId);
     if (!category) return;
@@ -128,6 +114,7 @@ export function CheckPage() {
     setSelectedCategoryId(null);
     setAmount(0);
     setDecision(null);
+    setShowDetails(false);
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -150,6 +137,11 @@ export function CheckPage() {
     year: 'numeric',
   });
 
+  const remainingBefore = context?.remaining ?? 0;
+  const remainingAfter = remainingBefore - amount;
+  const daysLeft = context?.daysLeft ?? 1;
+  const dailyAfter = remainingAfter / daysLeft;
+
   return (
     <div className="flex flex-col min-h-screen pb-20 px-4 pt-6">
       <div className="mb-6">
@@ -170,51 +162,67 @@ export function CheckPage() {
 
       {flowState === 'result' && selectedCategory && context && decision && (
         <div
-          className="flex flex-col gap-6"
+          className="flex flex-col gap-5"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-          <div className="text-center">
-            <p className="text-lg text-gray-600">
-              ₹{amount.toLocaleString('en-IN')} for {selectedCategory.name}
-            </p>
-          </div>
+          <DecisionResult
+            decision={decision}
+            amount={amount}
+            categoryName={selectedCategory.name}
+            today={today}
+          />
 
-          <ContextMessage context={context} categoryName={selectedCategory.name} />
-
-          <DecisionResult decision={decision} today={today} waitContext={waitContext} />
-
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <p className="text-sm text-gray-500 mb-2 text-center">If you buy this</p>
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="text-xs text-gray-500">Remaining</p>
-                <p className={`text-xl font-bold ${context.remaining - amount < 0 ? 'text-red-600' : 'text-gray-900'}`}>
-                  ₹{Math.round(context.remaining - amount).toLocaleString('en-IN')}
+          <div className="bg-gray-50 rounded-xl p-5">
+            <div className="flex items-center justify-center gap-4">
+              <div className="text-center">
+                <p className="text-xs text-gray-500 mb-1">Before</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  ₹{Math.round(remainingBefore).toLocaleString('en-IN')}
                 </p>
               </div>
-              <div className="text-right">
-                <p className="text-xs text-gray-500">Per week</p>
-                <p className={`text-xl font-bold ${(context.remaining - amount) / context.weeksLeft < 0 ? 'text-red-600' : 'text-gray-900'}`}>
-                  ₹{Math.round((context.remaining - amount) / context.weeksLeft).toLocaleString('en-IN')}
+              <div className="text-gray-400">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </div>
+              <div className="text-center">
+                <p className="text-xs text-gray-500 mb-1">After</p>
+                <p className={`text-2xl font-bold ${remainingAfter < 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                  ₹{Math.round(remainingAfter).toLocaleString('en-IN')}
                 </p>
               </div>
             </div>
-            <p className="text-xs text-gray-500 mt-2 text-center">in {selectedCategory.name}</p>
+            <p className="text-sm text-gray-500 text-center mt-3">
+              {daysLeft} day{daysLeft !== 1 ? 's' : ''} left · ₹{Math.round(dailyAfter).toLocaleString('en-IN')}/day after
+            </p>
           </div>
+
+          <button
+            onClick={() => setShowDetails(!showDetails)}
+            className="flex items-center justify-center gap-2 text-sm text-gray-500 py-2"
+          >
+            <svg
+              className={`w-4 h-4 transition-transform ${showDetails ? 'rotate-180' : ''}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+            {showDetails ? 'Hide details' : 'Show details'}
+          </button>
+
+          {showDetails && (
+            <ContextMessage context={context} categoryName={selectedCategory.name} />
+          )}
 
           <PostDecisionActions onBought={handleBought} onSkipped={handleSkipped} />
 
           <p className="text-xs text-gray-400 text-center">
-            Swipe right for Bought · Swipe left for Skipped
+            Swipe right for Bought · Swipe left for Skip
           </p>
-
-          <button
-            onClick={resetFlow}
-            className="w-full py-3 text-gray-600 underline"
-          >
-            Start Over
-          </button>
         </div>
       )}
 

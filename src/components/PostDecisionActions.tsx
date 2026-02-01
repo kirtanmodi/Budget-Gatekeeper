@@ -10,7 +10,7 @@ export function PostDecisionActions({ onBought, onSkipped }: PostDecisionActions
         onClick={onSkipped}
         className="flex-1 py-4 text-lg font-semibold bg-gray-200 text-gray-700 rounded-lg active:bg-gray-300 min-h-[56px]"
       >
-        Skipped
+        Skip
       </button>
       <button
         onClick={onBought}
