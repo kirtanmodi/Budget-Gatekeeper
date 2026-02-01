@@ -111,8 +111,16 @@ export function TransactionsPage() {
       </div>
 
       {displayLogs.length === 0 ? (
-        <div className="text-center text-gray-500 py-12">
-          No transactions{isCurrentMonth ? ' yet' : ' in this month'}
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+            <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          </div>
+          <p className="text-gray-600 font-medium">No transactions{isCurrentMonth ? ' yet' : ''}</p>
+          <p className="text-sm text-gray-500 mt-1">
+            {isCurrentMonth ? 'Your purchases will appear here' : 'No purchases recorded this month'}
+          </p>
         </div>
       ) : (
         <div className="flex-1">
@@ -157,9 +165,22 @@ export function TransactionsPage() {
               ) : (
                 <>
                   <div className="flex-1">
-                    <p className="font-medium text-gray-900">
-                      {getCategoryName(log.categoryId)}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-gray-900">
+                        {getCategoryName(log.categoryId)}
+                      </p>
+                      <span
+                        className={`px-1.5 py-0.5 text-xs font-medium rounded ${
+                          log.decision === 'YES'
+                            ? 'bg-emerald-100 text-emerald-700'
+                            : log.decision === 'WAIT'
+                            ? 'bg-amber-100 text-amber-700'
+                            : 'bg-red-100 text-red-700'
+                        }`}
+                      >
+                        {log.decision}
+                      </span>
+                    </div>
                     <p className="text-sm text-gray-500">{formatDate(log.date)}</p>
                   </div>
                   <div className="flex items-center gap-3">
@@ -171,12 +192,14 @@ export function TransactionsPage() {
                         <button
                           onClick={() => handleEdit(log.id, log.amount)}
                           className="p-2 text-gray-400 active:text-gray-600 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                          aria-label={`Edit ${getCategoryName(log.categoryId)} transaction`}
                         >
                           <svg
                             className="w-5 h-5"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
+                            aria-hidden="true"
                           >
                             <path
                               strokeLinecap="round"
@@ -189,12 +212,14 @@ export function TransactionsPage() {
                         <button
                           onClick={() => handleDelete(log.id)}
                           className="p-2 text-gray-400 active:text-red-600 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                          aria-label={`Delete ${getCategoryName(log.categoryId)} transaction`}
                         >
                           <svg
                             className="w-5 h-5"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
+                            aria-hidden="true"
                           >
                             <path
                               strokeLinecap="round"

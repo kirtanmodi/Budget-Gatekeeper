@@ -171,12 +171,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <button
               onClick={onClose}
               className="p-2 -mr-2 text-gray-500 active:text-gray-700"
+              aria-label="Close menu"
             >
               <svg
                 className="w-6 h-6"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
+                aria-hidden="true"
               >
                 <path
                   strokeLinecap="round"

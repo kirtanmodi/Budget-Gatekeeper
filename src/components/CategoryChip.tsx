@@ -26,11 +26,13 @@ export function CategoryChip({ category, selected, onClick }: CategoryChipProps)
       }`}
     >
       <span className="font-medium">{category.name}</span>
-      {selected && (
-        <span className="block text-xs text-gray-400 mt-0.5">
-          {isOver ? 'over budget' : `${formatCompactCurrency(remaining)} left`}
-        </span>
-      )}
+      <span className={`block text-xs mt-0.5 ${
+        selected
+          ? isOver ? 'text-red-300' : 'text-gray-400'
+          : isOver ? 'text-red-500' : 'text-gray-500'
+      }`}>
+        {isOver ? `${formatCompactCurrency(Math.abs(remaining))} over` : `${formatCompactCurrency(remaining)} left`}
+      </span>
     </button>
   );
 }

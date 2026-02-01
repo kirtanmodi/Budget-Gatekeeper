@@ -11,13 +11,13 @@ interface DecisionResultProps {
 function getReasonMessage(reason: DecisionReason): string {
   switch (reason.code) {
     case 'GRACE':
-      return `Using ${reason.usedPercent}% — plenty of buffer`;
+      return `Only ${reason.usedPercent}% used — lots of room left`;
     case 'ON_PACE':
-      return `On track — ${reason.allowedPercent}% allowed by now`;
+      return `You're on track for this month`;
     case 'OVER_PACE':
-      return `${reason.totalPercent}% vs ${reason.allowedPercent}% allowed`;
+      return `Spending faster than your pace allows`;
     case 'OVER_BUDGET':
-      return 'Exceeds your budget';
+      return 'This would exceed your monthly limit';
   }
 }
 
