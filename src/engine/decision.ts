@@ -5,10 +5,11 @@ export function calculateDecision(
   spentSoFar: number,
   newAmount: number,
   currentDay: number,
-  daysInMonth: number
+  daysInMonth: number,
+  graceThreshold: number = 0.6
 ): Decision {
   const total = spentSoFar + newAmount;
-  const graceLimit = categoryBudget * 0.6;
+  const graceLimit = categoryBudget * graceThreshold;
 
   // Time-weighted: 50% allowed on day 1, scaling to 100% by month end
   const progress = currentDay / daysInMonth;
@@ -80,10 +81,10 @@ export function getDaysInMonth(year: number, month: number): number {
 
 export type Zone = 'FREE' | 'CONTROL' | 'STOP';
 
-export function getZone(spent: number, budget: number): Zone {
+export function getZone(spent: number, budget: number, graceThreshold: number = 0.6): Zone {
   if (budget <= 0) return 'STOP';
   const percent = (spent / budget) * 100;
-  if (percent <= 60) return 'FREE';
+  if (percent <= graceThreshold * 100) return 'FREE';
   if (percent <= 100) return 'CONTROL';
   return 'STOP';
 }

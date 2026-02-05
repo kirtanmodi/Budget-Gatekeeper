@@ -188,7 +188,8 @@ export function generateSuggestions(state: BudgetState): Suggestion[] {
       currentDay >= midpoint &&
       analysis.usedPercent < UNDERUTILIZED_THRESHOLD * 100
     ) {
-      createUnderutilizedSuggestion(analysis, currentDay, daysInMonth);
+      const suggestion = createUnderutilizedSuggestion(analysis, currentDay, daysInMonth);
+      if (suggestion) suggestions.push(suggestion);
     }
   }
 

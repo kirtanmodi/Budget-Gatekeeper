@@ -8,6 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 npm run dev      # Vite dev server with HMR
 npm run build    # TypeScript check + Vite bundle
 npm run lint     # ESLint all files
+npm run test     # Vitest watch mode
+npm run test:run # Vitest single run
 npm run preview  # Local production preview
 npm run deploy   # Build + Netlify deploy --prod
 ```
@@ -48,6 +50,7 @@ BudgetState {
   archivedLogs[]      → Historical logs
   system.today        → Current date (ISO string)
   lastUsedCategoryId  → Form pre-fill
+  settings            → User preferences (graceThreshold)
 }
 
 Category {
@@ -65,18 +68,19 @@ Key actions:
 - `addCategory` / `removeCategory` — category CRUD
 - `syncToday` — triggers month rollover if needed
 - `resetAllSpent` / `resetToDefaults` — data management
+- `updateGraceThreshold` — configure FREE zone threshold
 
 ### Decision Engine
 
 Core logic in `src/engine/decision.ts`:
 
 ```
-calculateDecision(budget, spent, newAmount, currentDay, daysInMonth)
+calculateDecision(budget, spent, newAmount, currentDay, daysInMonth, graceThreshold)
   → { type: 'YES' } | { type: 'WAIT', days: N } | { type: 'NO' }
 
-Zones:
-  FREE (≤80%)       → Auto-approve
-  CONTROL (80-100%) → Pace-check against daily allowance
+Zones (graceThreshold defaults to 0.6 / 60%, configurable in Settings):
+  FREE (≤60%)       → Auto-approve (grace zone)
+  CONTROL (60-100%) → Pace-check against daily allowance
   STOP (>100%)      → Reject
 ```
 
@@ -136,4 +140,7 @@ src/
 
 ## Testing
 
-No test infrastructure configured. Add Vitest + React Testing Library if needed.
+Uses Vitest + React Testing Library:
+- `npm run test` — watch mode
+- `npm run test:run` — single run
+- Tests in `src/engine/decision.test.ts` cover decision logic

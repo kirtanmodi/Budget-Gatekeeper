@@ -15,6 +15,9 @@ const initialState: BudgetState = {
     today: getInitialToday(),
   },
   lastUsedCategoryId: null,
+  settings: {
+    graceThreshold: 0.6,
+  },
 };
 
 const budgetSlice = createSlice({
@@ -172,6 +175,10 @@ const budgetSlice = createSlice({
       }
       state.decisionLogs = state.decisionLogs.filter((l) => l.id !== id);
     },
+
+    updateGraceThreshold: (state, action: PayloadAction<number>) => {
+      state.settings.graceThreshold = action.payload;
+    },
   },
 });
 
@@ -188,5 +195,6 @@ export const {
   undoLastDecision,
   addCategory,
   removeCategory,
+  updateGraceThreshold,
 } = budgetSlice.actions;
 export default budgetSlice.reducer;

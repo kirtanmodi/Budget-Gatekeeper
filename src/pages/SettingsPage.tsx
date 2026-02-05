@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
-import { updateBudget, addCategory, removeCategory } from '../store/budgetSlice';
+import { updateBudget, addCategory, removeCategory, updateGraceThreshold } from '../store/budgetSlice';
 import { CategoryBudgetRow } from '../components/CategoryBudgetRow';
 import { formatCurrency } from '../utils/format';
 
 export function SettingsPage() {
   const dispatch = useAppDispatch();
   const categories = useAppSelector((state) => state.budget.categories);
+  const graceThreshold = useAppSelector((state) => state.budget.settings?.graceThreshold ?? 0.6);
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [newName, setNewName] = useState('');
@@ -18,6 +19,10 @@ export function SettingsPage() {
 
   const handleRemove = (categoryId: string) => {
     dispatch(removeCategory(categoryId));
+  };
+
+  const handleGraceThresholdChange = (value: number) => {
+    dispatch(updateGraceThreshold(value));
   };
 
   const handleAddCategory = () => {
@@ -115,6 +120,28 @@ export function SettingsPage() {
             Add Category
           </button>
         )}
+      </div>
+
+      <div className="mt-8">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Decision Settings</h2>
+        <div className="bg-gray-50 rounded-lg p-4">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm text-gray-700">Free Zone Threshold</span>
+            <span className="text-sm font-medium text-gray-900">{Math.round(graceThreshold * 100)}%</span>
+          </div>
+          <input
+            type="range"
+            min="40"
+            max="80"
+            value={graceThreshold * 100}
+            onChange={(e) => handleGraceThresholdChange(parseInt(e.target.value) / 100)}
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-900"
+          />
+          <p className="text-xs text-gray-500 mt-3">
+            Spending below {Math.round(graceThreshold * 100)}% of your budget auto-approves without pace checks.
+            Higher = more lenient early in the month.
+          </p>
+        </div>
       </div>
     </div>
   );

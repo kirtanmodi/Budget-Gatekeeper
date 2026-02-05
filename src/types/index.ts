@@ -18,6 +18,10 @@ export interface SystemState {
   today: string;
 }
 
+export interface Settings {
+  graceThreshold: number;
+}
+
 export interface BudgetState {
   categories: Category[];
   currentPeriod: { month: number; year: number } | null;
@@ -25,6 +29,7 @@ export interface BudgetState {
   archivedLogs: DecisionLog[];
   system: SystemState;
   lastUsedCategoryId: string | null;
+  settings: Settings;
 }
 
 export type DecisionReason =

@@ -30,6 +30,27 @@ export function DebugPage() {
     URL.revokeObjectURL(url);
   };
 
+  const handleExportCSV = () => {
+    const allLogs = [...decisionLogs, ...archivedLogs];
+    const headers = ['Date', 'Category', 'Amount', 'Decision', 'Wait Days'];
+    const rows = allLogs.map((log) => [
+      log.date,
+      `"${getCategoryName(log.categoryId)}"`,
+      log.amount,
+      log.decision,
+      log.waitDays ?? '',
+    ]);
+
+    const csv = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `budget-gatekeeper-transactions-${system.today}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleCopy = async () => {
     const dataStr = JSON.stringify(budgetState, null, 2);
     await navigator.clipboard.writeText(dataStr);
@@ -52,16 +73,22 @@ export function DebugPage() {
       <h1 className="text-2xl font-bold text-gray-900 mb-2">Debug</h1>
       <p className="text-gray-600 mb-6">View all stored data</p>
 
-      <div className="flex gap-2 mb-6">
+      <div className="flex flex-wrap gap-2 mb-6">
         <button
           onClick={handleExport}
-          className="flex-1 py-2 px-3 bg-gray-900 text-white rounded-lg text-sm font-medium"
+          className="flex-1 py-2 px-3 bg-gray-900 text-white rounded-lg text-sm font-medium min-w-[100px]"
         >
           Export JSON
         </button>
         <button
+          onClick={handleExportCSV}
+          className="flex-1 py-2 px-3 bg-gray-700 text-white rounded-lg text-sm font-medium min-w-[100px]"
+        >
+          Export CSV
+        </button>
+        <button
           onClick={handleCopy}
-          className="flex-1 py-2 px-3 border border-gray-300 rounded-lg text-sm font-medium"
+          className="flex-1 py-2 px-3 border border-gray-300 rounded-lg text-sm font-medium min-w-[80px]"
         >
           {copied ? 'Copied!' : 'Copy'}
         </button>

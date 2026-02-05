@@ -18,6 +18,7 @@ export function CheckPage() {
   const categories = useAppSelector((state) => state.budget.categories);
   const today = useAppSelector((state) => state.budget.system.today);
   const lastUsedCategoryId = useAppSelector((state) => state.budget.lastUsedCategoryId);
+  const graceThreshold = useAppSelector((state) => state.budget.settings?.graceThreshold ?? 0.6);
 
   const [flowState, setFlowState] = useState<FlowState>('input');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
@@ -69,7 +70,8 @@ export function CheckPage() {
       category.currentSpent,
       checkAmount,
       currentDay,
-      daysInMonth
+      daysInMonth,
+      graceThreshold
     );
 
     setDecision(result);

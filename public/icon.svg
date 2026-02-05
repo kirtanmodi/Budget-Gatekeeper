@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="64" fill="#111827"/>
+  <path d="M256 80c-80 0-145 55-145 122v80c0 35 15 67 40 90l85 60c12 8 28 8 40 0l85-60c25-23 40-55 40-90v-80c0-67-65-122-145-122z" fill="#22c55e" opacity="0.9"/>
+  <path d="M256 120c-60 0-105 40-105 82v60c0 25 10 48 28 65l60 42c10 7 24 7 34 0l60-42c18-17 28-40 28-65v-60c0-42-45-82-105-82z" fill="#111827"/>
+  <text x="256" y="300" font-family="system-ui, sans-serif" font-size="140" font-weight="bold" fill="#22c55e" text-anchor="middle">₹</text>
+</svg>
