@@ -1,5 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Link } from 'react-router-dom';
+import {
+  SignedIn,
+  SignedOut,
+  RedirectToSignIn,
+  UserButton,
+} from '@clerk/clerk-react';
 import { useAppDispatch } from './store/hooks';
 import { syncToday } from './store/budgetSlice';
 import { DashboardPage } from './pages/DashboardPage';
@@ -10,6 +16,8 @@ import { SettingsPage } from './pages/SettingsPage';
 import { InsightsPage } from './pages/InsightsPage';
 import { MonthlyOverviewPage } from './pages/MonthlyOverviewPage';
 import { DebugPage } from './pages/DebugPage';
+import { SignInPage } from './pages/SignInPage';
+import { SignUpPage } from './pages/SignUpPage';
 import { NavBar } from './components/NavBar';
 import { Sidebar } from './components/Sidebar';
 
@@ -62,7 +70,7 @@ function App() {
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      <header className="fixed top-0 left-0 right-0 h-12 bg-white border-b border-gray-200 flex items-center justify-start px-4 z-40 safe-area-top">
+      <header className="fixed top-0 left-0 right-0 h-12 bg-white border-b border-gray-200 flex items-center justify-between px-4 z-40 safe-area-top">
         <button
           onClick={() => setSidebarOpen(true)}
           className="p-2 -ml-2 text-gray-600 active:text-gray-900"
@@ -83,20 +91,44 @@ function App() {
             />
           </svg>
         </button>
+        <div className="flex items-center">
+          <SignedOut>
+            <Link
+              to="/sign-in"
+              className="px-4 py-2 text-sm font-medium text-gray-700 active:text-gray-900"
+            >
+              Sign In
+            </Link>
+          </SignedOut>
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
+        </div>
       </header>
-      <div className="pt-12">
+      <SignedIn>
+        <div className="pt-12">
+          <Routes>
+            <Route path="/" element={<CheckPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/transactions" element={<TransactionsPage />} />
+            <Route path="/adjust" element={<AdjustSpendPage />} />
+            <Route path="/insights" element={<InsightsPage />} />
+            <Route path="/overview" element={<MonthlyOverviewPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/debug" element={<DebugPage />} />
+            <Route path="/sign-in/*" element={<SignInPage />} />
+            <Route path="/sign-up/*" element={<SignUpPage />} />
+          </Routes>
+        </div>
+        <NavBar />
+      </SignedIn>
+      <SignedOut>
         <Routes>
-          <Route path="/" element={<CheckPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/transactions" element={<TransactionsPage />} />
-          <Route path="/adjust" element={<AdjustSpendPage />} />
-          <Route path="/insights" element={<InsightsPage />} />
-          <Route path="/overview" element={<MonthlyOverviewPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/debug" element={<DebugPage />} />
+          <Route path="/sign-in/*" element={<SignInPage />} />
+          <Route path="/sign-up/*" element={<SignUpPage />} />
+          <Route path="*" element={<RedirectToSignIn />} />
         </Routes>
-      </div>
-      <NavBar />
+      </SignedOut>
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
     </div>
   );
