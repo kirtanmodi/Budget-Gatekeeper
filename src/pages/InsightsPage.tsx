@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { updateBudget } from '../store/budgetSlice';
 import {
@@ -7,10 +8,13 @@ import {
   calculatePaceProjections,
 } from '../engine/suggestions';
 import { generateForecastData } from '../engine/forecast';
+import { generatePredictiveAlerts } from '../engine/predictor';
+import { hasEnoughData } from '../engine/patterns';
 import { getDaysInMonth } from '../engine/decision';
 import { SuggestionCard } from '../components/SuggestionCard';
 import { ForecastChart } from '../components/ForecastChart';
 import { MonthPicker } from '../components/MonthPicker';
+import { PredictiveAlertCard } from '../components/PredictiveAlertCard';
 import { formatNumber } from '../utils/format';
 import {
   type MonthYear,
@@ -22,10 +26,13 @@ import type { Suggestion, ForecastData } from '../types';
 
 export function InsightsPage() {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const budgetState = useAppSelector((state) => state.budget);
-  const { categories, decisionLogs, archivedLogs, system } = budgetState;
+  const { categories, decisionLogs, archivedLogs, system, settings } = budgetState;
+  const enablePredictiveAlerts = settings?.enablePredictiveAlerts ?? false;
 
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+  const [dismissedAlertIds, setDismissedAlertIds] = useState<Set<string>>(new Set());
 
   const todayDate = useMemo(() => new Date(system.today), [system.today]);
   const currentMonth: MonthYear = useMemo(
@@ -76,6 +83,16 @@ export function InsightsPage() {
 
   const netProjection = projections.reduce((sum, p) => sum + p.projectedDelta, 0);
 
+  const allLogs = useMemo(() => [...archivedLogs, ...decisionLogs], [archivedLogs, decisionLogs]);
+  const hasEnoughHistoricalData = useMemo(() => hasEnoughData(allLogs), [allLogs]);
+
+  const predictiveAlerts = useMemo(() => {
+    if (!isCurrentMonth || !enablePredictiveAlerts) return [];
+    return generatePredictiveAlerts(budgetState, archivedLogs).filter(
+      (a) => !dismissedAlertIds.has(a.id)
+    );
+  }, [budgetState, archivedLogs, isCurrentMonth, enablePredictiveAlerts, dismissedAlertIds]);
+
   const handleAction = (suggestion: Suggestion) => {
     if (!suggestion.action) return;
 
@@ -92,6 +109,14 @@ export function InsightsPage() {
 
   const handleDismiss = (suggestion: Suggestion) => {
     setDismissedIds((prev) => new Set([...prev, suggestion.id]));
+  };
+
+  const handleAdjustBudget = () => {
+    navigate('/settings');
+  };
+
+  const handleDismissAlert = (alertId: string) => {
+    setDismissedAlertIds((prev) => new Set([...prev, alertId]));
   };
 
   return (
@@ -195,6 +220,53 @@ export function InsightsPage() {
                 className={`w-4 h-0.5 rounded ${forecastData.isOverspending ? 'bg-red-500' : 'bg-green-500'} opacity-70`}
               />
               <span>Projected</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isCurrentMonth && enablePredictiveAlerts && predictiveAlerts.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-sm font-medium text-gray-700 mb-3">
+            Predictive Alerts
+          </h2>
+          <div className="space-y-3">
+            {predictiveAlerts.map((alert) => {
+              const category = categories.find((c) => c.id === alert.categoryId);
+              return (
+                <div key={alert.id} className="relative">
+                  <PredictiveAlertCard
+                    alert={alert}
+                    categoryName={category?.name || 'Unknown'}
+                    onAdjustBudget={handleAdjustBudget}
+                  />
+                  <button
+                    onClick={() => handleDismissAlert(alert.id)}
+                    className="absolute top-2 right-2 p-2 text-gray-400 active:text-gray-600 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                    aria-label="Dismiss alert"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {isCurrentMonth && enablePredictiveAlerts && !hasEnoughHistoricalData && decisionLogs.length > 0 && (
+        <div className="bg-gray-50 rounded-lg p-4 mb-6">
+          <div className="flex items-start gap-3">
+            <svg className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <p className="text-sm font-medium text-gray-700">Building your spending patterns</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Predictive alerts will become more accurate after 3 months of usage.
+              </p>
             </div>
           </div>
         </div>

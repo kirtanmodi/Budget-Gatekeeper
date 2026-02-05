@@ -1,17 +1,35 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
-import { updateBudget, addCategory, removeCategory, updateGraceThreshold } from '../store/budgetSlice';
+import { updateBudget, addCategory, removeCategory, updateGraceThreshold, updateAiSettings, updateCategoryThreshold, clearCategoryThreshold } from '../store/budgetSlice';
 import { CategoryBudgetRow } from '../components/CategoryBudgetRow';
+import { ThresholdRecommendation } from '../components/ThresholdRecommendation';
+import { generateThresholdRecommendations } from '../engine/thresholds';
+import { hasEnoughData } from '../engine/patterns';
 import { formatCurrency } from '../utils/format';
 
 export function SettingsPage() {
   const dispatch = useAppDispatch();
   const categories = useAppSelector((state) => state.budget.categories);
   const graceThreshold = useAppSelector((state) => state.budget.settings?.graceThreshold ?? 0.6);
+  const settings = useAppSelector((state) => state.budget.settings);
+
+  const decisionLogs = useAppSelector((state) => state.budget.decisionLogs);
+  const archivedLogs = useAppSelector((state) => state.budget.archivedLogs);
+  const enablePersonalizedThresholds = settings?.enablePersonalizedThresholds ?? false;
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [newName, setNewName] = useState('');
   const [newBudget, setNewBudget] = useState('');
+  const [dismissedRecommendations, setDismissedRecommendations] = useState<Set<string>>(new Set());
+
+  const allLogs = useMemo(() => [...archivedLogs, ...decisionLogs], [archivedLogs, decisionLogs]);
+  const hasEnoughHistoricalData = useMemo(() => hasEnoughData(allLogs), [allLogs]);
+
+  const thresholdRecommendations = useMemo(() => {
+    if (!enablePersonalizedThresholds || !hasEnoughHistoricalData) return [];
+    return generateThresholdRecommendations(allLogs, categories, graceThreshold)
+      .filter((r) => !dismissedRecommendations.has(r.categoryId));
+  }, [allLogs, categories, graceThreshold, enablePersonalizedThresholds, hasEnoughHistoricalData, dismissedRecommendations]);
 
   const handleBudgetChange = (categoryId: string, newBudget: number) => {
     dispatch(updateBudget({ categoryId, newBudget }));
@@ -23,6 +41,19 @@ export function SettingsPage() {
 
   const handleGraceThresholdChange = (value: number) => {
     dispatch(updateGraceThreshold(value));
+  };
+
+  const handleCategoryThresholdChange = (categoryId: string, value: number) => {
+    dispatch(updateCategoryThreshold({ categoryId, threshold: value }));
+  };
+
+  const handleApplyRecommendation = (categoryId: string, threshold: number) => {
+    dispatch(updateCategoryThreshold({ categoryId, threshold }));
+    setDismissedRecommendations((prev) => new Set([...prev, categoryId]));
+  };
+
+  const handleDismissRecommendation = (categoryId: string) => {
+    setDismissedRecommendations((prev) => new Set([...prev, categoryId]));
   };
 
   const handleAddCategory = () => {
@@ -143,6 +174,143 @@ export function SettingsPage() {
           </p>
         </div>
       </div>
+
+      <div className="mt-8">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">AI Features</h2>
+        <div className="bg-gray-50 rounded-lg divide-y divide-gray-200">
+          <label className="flex items-center justify-between p-4 cursor-pointer">
+            <div className="flex-1 pr-4">
+              <span className="text-sm font-medium text-gray-900">Smart Categorization</span>
+              <p className="text-xs text-gray-500 mt-1">Auto-suggest category from expense description</p>
+            </div>
+            <input
+              type="checkbox"
+              checked={settings?.enableSmartCategorization ?? false}
+              onChange={(e) => dispatch(updateAiSettings({ enableSmartCategorization: e.target.checked }))}
+              className="w-5 h-5 rounded accent-gray-900"
+            />
+          </label>
+
+          <label className="flex items-center justify-between p-4 cursor-pointer">
+            <div className="flex-1 pr-4">
+              <span className="text-sm font-medium text-gray-900">Predictive Alerts</span>
+              <p className="text-xs text-gray-500 mt-1">Get warned before you overspend based on patterns</p>
+            </div>
+            <input
+              type="checkbox"
+              checked={settings?.enablePredictiveAlerts ?? false}
+              onChange={(e) => dispatch(updateAiSettings({ enablePredictiveAlerts: e.target.checked }))}
+              className="w-5 h-5 rounded accent-gray-900"
+            />
+          </label>
+
+          <label className="flex items-center justify-between p-4 cursor-pointer">
+            <div className="flex-1 pr-4">
+              <span className="text-sm font-medium text-gray-900">Natural Language Input</span>
+              <p className="text-xs text-gray-500 mt-1">Type "spent 500 on food" instead of filling form</p>
+            </div>
+            <input
+              type="checkbox"
+              checked={settings?.enableNluInput ?? false}
+              onChange={(e) => dispatch(updateAiSettings({ enableNluInput: e.target.checked }))}
+              className="w-5 h-5 rounded accent-gray-900"
+            />
+          </label>
+
+          <label className="flex items-center justify-between p-4 cursor-pointer">
+            <div className="flex-1 pr-4">
+              <span className="text-sm font-medium text-gray-900">Personalized Thresholds</span>
+              <p className="text-xs text-gray-500 mt-1">AI-tuned free zone per category based on your history</p>
+            </div>
+            <input
+              type="checkbox"
+              checked={settings?.enablePersonalizedThresholds ?? false}
+              onChange={(e) => dispatch(updateAiSettings({ enablePersonalizedThresholds: e.target.checked }))}
+              className="w-5 h-5 rounded accent-gray-900"
+            />
+          </label>
+        </div>
+      </div>
+
+      {enablePersonalizedThresholds && (
+        <div className="mt-8">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Per-Category Thresholds</h2>
+
+          {!hasEnoughHistoricalData && (
+            <div className="bg-gray-50 rounded-lg p-4 mb-4">
+              <div className="flex items-start gap-3">
+                <svg className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Building your spending patterns</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    AI recommendations will appear after 3 months of usage.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {thresholdRecommendations.length > 0 && (
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-3">AI Recommendations</p>
+              <div className="space-y-3">
+                {thresholdRecommendations.map((rec) => {
+                  const category = categories.find((c) => c.id === rec.categoryId);
+                  return (
+                    <ThresholdRecommendation
+                      key={rec.categoryId}
+                      recommendation={rec}
+                      categoryName={category?.name || 'Unknown'}
+                      onApply={handleApplyRecommendation}
+                      onDismiss={handleDismissRecommendation}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <div className="bg-gray-50 rounded-lg divide-y divide-gray-200">
+            {categories.map((category) => {
+              const currentThreshold = category.graceThreshold ?? graceThreshold;
+              const isCustom = category.graceThreshold !== undefined;
+              return (
+                <div key={category.id} className="p-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-medium text-gray-900">
+                      {category.name}
+                      {isCustom && (
+                        <span className="ml-2 text-xs text-blue-600">(custom)</span>
+                      )}
+                    </span>
+                    <span className="text-sm text-gray-600">
+                      {Math.round(currentThreshold * 100)}%
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="40"
+                    max="80"
+                    value={currentThreshold * 100}
+                    onChange={(e) => handleCategoryThresholdChange(category.id, parseInt(e.target.value) / 100)}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-900"
+                  />
+                  {isCustom && (
+                    <button
+                      onClick={() => dispatch(clearCategoryThreshold(category.id))}
+                      className="text-xs text-gray-500 mt-1 underline"
+                    >
+                      Reset to global ({Math.round(graceThreshold * 100)}%)
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

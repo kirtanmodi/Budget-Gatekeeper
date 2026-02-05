@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { updateTransaction, deleteTransaction } from '../store/budgetSlice';
 import { formatCurrency, pluralize } from '../utils/format';
@@ -12,6 +13,9 @@ import {
 
 export function TransactionsPage() {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const categoryFilter = searchParams.get('category');
   const categories = useAppSelector((state) => state.budget.categories);
   const decisionLogs = useAppSelector((state) => state.budget.decisionLogs);
   const archivedLogs = useAppSelector((state) => state.budget.archivedLogs);
@@ -37,25 +41,44 @@ export function TransactionsPage() {
     return earliest || currentMonth;
   }, [archivedLogs, currentMonth]);
 
+  const filteredCategory = categoryFilter
+    ? categories.find((c) => c.id === categoryFilter)
+    : null;
+
   const displayLogs = useMemo(() => {
-    const logs = isCurrentMonth
+    let logs = isCurrentMonth
       ? decisionLogs
       : filterLogsByMonth(archivedLogs, viewDate.year, viewDate.month);
+
+    if (categoryFilter) {
+      logs = logs.filter((log) => log.categoryId === categoryFilter);
+    }
 
     return [...logs].sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
     );
-  }, [isCurrentMonth, decisionLogs, archivedLogs, viewDate]);
+  }, [isCurrentMonth, decisionLogs, archivedLogs, viewDate, categoryFilter]);
 
   const getCategoryName = (categoryId: string) => {
     return categories.find((c) => c.id === categoryId)?.name || categoryId;
   };
 
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-IN', {
+  const formatDate = (dateStr: string, timestamp?: string) => {
+    const dateOptions: Intl.DateTimeFormatOptions = {
       day: 'numeric',
       month: 'short',
-    });
+    };
+    const dateFormatted = new Date(dateStr).toLocaleDateString('en-IN', dateOptions);
+
+    if (timestamp) {
+      const time = new Date(timestamp).toLocaleTimeString('en-IN', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      });
+      return `${dateFormatted}, ${time}`;
+    }
+    return dateFormatted;
   };
 
   const handleEdit = (id: string, currentAmount: number) => {
@@ -85,9 +108,38 @@ export function TransactionsPage() {
 
   const totalSpent = displayLogs.reduce((sum, l) => sum + l.amount, 0);
 
+  const handleBack = () => {
+    navigate(-1);
+  };
+
+  const handleClearFilter = () => {
+    navigate('/transactions');
+  };
+
   return (
     <div className="flex flex-col min-h-screen pb-20 px-4 pt-6">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">Transactions</h1>
+      {filteredCategory ? (
+        <div className="mb-4">
+          <button
+            onClick={handleBack}
+            className="flex items-center gap-1 text-gray-600 mb-2 -ml-1 min-h-[44px]"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            <span className="text-sm">Back</span>
+          </button>
+          <h1 className="text-2xl font-bold text-gray-900">{filteredCategory.name}</h1>
+          <button
+            onClick={handleClearFilter}
+            className="text-sm text-blue-600 mt-1"
+          >
+            View all transactions
+          </button>
+        </div>
+      ) : (
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Transactions</h1>
+      )}
 
       <MonthPicker
         value={viewDate}
@@ -99,6 +151,7 @@ export function TransactionsPage() {
       <p className="text-gray-600 mb-4">
         {displayLogs.length} {pluralize(displayLogs.length, 'purchase')}{' '}
         {isCurrentMonth ? 'this month' : ''}
+        {filteredCategory ? ` in ${filteredCategory.name}` : ''}
       </p>
 
       <div className="bg-gray-100 rounded-lg p-4 mb-6">
@@ -181,7 +234,10 @@ export function TransactionsPage() {
                         {log.decision}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-500">{formatDate(log.date)}</p>
+                    {log.description && (
+                      <p className="text-sm text-gray-700">{log.description}</p>
+                    )}
+                    <p className="text-sm text-gray-500">{formatDate(log.date, log.timestamp)}</p>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-lg font-semibold text-gray-900">

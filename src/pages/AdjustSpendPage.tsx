@@ -37,13 +37,13 @@ export function AdjustSpendPage() {
       <div className="flex flex-col gap-3 mb-6">
         <button
           onClick={handleResetSpent}
-          className="w-full py-3 text-gray-700 border border-gray-300 rounded-lg active:bg-gray-100"
+          className="w-full py-3 text-gray-700 border border-gray-300 rounded-lg active:bg-gray-100 min-h-[44px]"
         >
           Reset All Spending to Zero
         </button>
         <button
           onClick={handleResetToDefaults}
-          className="w-full py-3 text-red-600 border border-red-300 rounded-lg active:bg-red-50"
+          className="w-full py-3 text-red-600 border border-red-300 rounded-lg active:bg-red-50 min-h-[44px]"
         >
           Reset Categories to Defaults
         </button>

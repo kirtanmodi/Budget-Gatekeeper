@@ -1,5 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type { BudgetState, DecisionLog } from '../types';
+import type { BudgetState, DecisionLog, Settings } from '../types';
 import { defaultCategories } from '../data/defaultCategories';
 
 const getInitialToday = (): string => {
@@ -31,9 +31,10 @@ const budgetSlice = createSlice({
         amount: number;
         decision: 'YES' | 'WAIT' | 'NO';
         waitDays?: number;
+        description?: string;
       }>
     ) => {
-      const { categoryId, amount, decision, waitDays } = action.payload;
+      const { categoryId, amount, decision, waitDays, description } = action.payload;
       const log: DecisionLog = {
         id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         categoryId,
@@ -41,6 +42,8 @@ const budgetSlice = createSlice({
         decision,
         waitDays,
         date: state.system.today,
+        timestamp: new Date().toISOString(),
+        description,
       };
       state.decisionLogs.push(log);
 
@@ -179,6 +182,70 @@ const budgetSlice = createSlice({
     updateGraceThreshold: (state, action: PayloadAction<number>) => {
       state.settings.graceThreshold = action.payload;
     },
+
+    updateCategoryThreshold: (
+      state,
+      action: PayloadAction<{ categoryId: string; threshold: number }>
+    ) => {
+      const { categoryId, threshold } = action.payload;
+      const category = state.categories.find((c) => c.id === categoryId);
+      if (category) {
+        category.graceThreshold = threshold;
+      }
+    },
+
+    clearCategoryThreshold: (state, action: PayloadAction<string>) => {
+      const category = state.categories.find((c) => c.id === action.payload);
+      if (category) {
+        delete category.graceThreshold;
+      }
+    },
+
+    updateCategoryKeywords: (
+      state,
+      action: PayloadAction<{ categoryId: string; keywords: string[] }>
+    ) => {
+      const { categoryId, keywords } = action.payload;
+      const category = state.categories.find((c) => c.id === categoryId);
+      if (category) {
+        category.keywords = keywords;
+      }
+    },
+
+    updateAiSettings: (state, action: PayloadAction<Partial<Settings>>) => {
+      state.settings = { ...state.settings, ...action.payload };
+    },
+
+    importTransactions: (
+      state,
+      action: PayloadAction<{
+        transactions: Array<{
+          categoryId: string;
+          amount: number;
+          date: string;
+          description?: string;
+        }>;
+      }>
+    ) => {
+      const { transactions } = action.payload;
+
+      for (const tx of transactions) {
+        const log: DecisionLog = {
+          id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          categoryId: tx.categoryId,
+          amount: tx.amount,
+          decision: 'YES',
+          date: tx.date,
+          description: tx.description,
+        };
+        state.decisionLogs.push(log);
+
+        const category = state.categories.find((c) => c.id === tx.categoryId);
+        if (category) {
+          category.currentSpent += tx.amount;
+        }
+      }
+    },
   },
 });
 
@@ -196,5 +263,10 @@ export const {
   addCategory,
   removeCategory,
   updateGraceThreshold,
+  updateCategoryThreshold,
+  clearCategoryThreshold,
+  updateCategoryKeywords,
+  updateAiSettings,
+  importTransactions,
 } = budgetSlice.actions;
 export default budgetSlice.reducer;

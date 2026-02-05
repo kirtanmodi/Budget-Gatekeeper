@@ -76,25 +76,25 @@ export function DebugPage() {
       <div className="flex flex-wrap gap-2 mb-6">
         <button
           onClick={handleExport}
-          className="flex-1 py-2 px-3 bg-gray-900 text-white rounded-lg text-sm font-medium min-w-[100px]"
+          className="flex-1 py-2 px-3 bg-gray-900 text-white rounded-lg text-sm font-medium min-w-[100px] min-h-[44px] active:bg-gray-800"
         >
           Export JSON
         </button>
         <button
           onClick={handleExportCSV}
-          className="flex-1 py-2 px-3 bg-gray-700 text-white rounded-lg text-sm font-medium min-w-[100px]"
+          className="flex-1 py-2 px-3 bg-gray-700 text-white rounded-lg text-sm font-medium min-w-[100px] min-h-[44px] active:bg-gray-600"
         >
           Export CSV
         </button>
         <button
           onClick={handleCopy}
-          className="flex-1 py-2 px-3 border border-gray-300 rounded-lg text-sm font-medium min-w-[80px]"
+          className="flex-1 py-2 px-3 border border-gray-300 rounded-lg text-sm font-medium min-w-[80px] min-h-[44px] active:bg-gray-100"
         >
           {copied ? 'Copied!' : 'Copy'}
         </button>
         <button
           onClick={() => setShowConfirmReset(true)}
-          className="py-2 px-3 bg-red-600 text-white rounded-lg text-sm font-medium"
+          className="py-2 px-3 bg-red-600 text-white rounded-lg text-sm font-medium min-h-[44px] active:bg-red-700"
         >
           Clear All
         </button>
@@ -222,7 +222,7 @@ export function DebugPage() {
       <section className="mb-6">
         <button
           onClick={() => setExpandedArchive(!expandedArchive)}
-          className="flex items-center justify-between w-full text-left"
+          className="flex items-center justify-between w-full text-left min-h-[44px] py-2 active:bg-gray-50 rounded-lg -mx-2 px-2"
         >
           <h2 className="text-sm font-semibold text-gray-500 uppercase">
             Archived Logs ({archivedLogs.length})
@@ -308,13 +308,13 @@ export function DebugPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => setShowConfirmReset(false)}
-                className="flex-1 py-2 border border-gray-300 rounded-lg font-medium"
+                className="flex-1 py-3 border border-gray-300 rounded-lg font-medium min-h-[44px] active:bg-gray-100"
               >
                 Cancel
               </button>
               <button
                 onClick={handleReset}
-                className="flex-1 py-2 bg-red-600 text-white rounded-lg font-medium"
+                className="flex-1 py-3 bg-red-600 text-white rounded-lg font-medium min-h-[44px] active:bg-red-700"
               >
                 Clear
               </button>

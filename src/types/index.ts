@@ -3,6 +3,8 @@ export interface Category {
   name: string;
   monthlyBudget: number;
   currentSpent: number;
+  graceThreshold?: number;
+  keywords?: string[];
 }
 
 export interface DecisionLog {
@@ -12,6 +14,8 @@ export interface DecisionLog {
   decision: 'YES' | 'WAIT' | 'NO';
   waitDays?: number;
   date: string;
+  timestamp?: string;
+  description?: string;
 }
 
 export interface SystemState {
@@ -20,6 +24,10 @@ export interface SystemState {
 
 export interface Settings {
   graceThreshold: number;
+  enableSmartCategorization?: boolean;
+  enablePredictiveAlerts?: boolean;
+  enableNluInput?: boolean;
+  enablePersonalizedThresholds?: boolean;
 }
 
 export interface BudgetState {
@@ -116,4 +124,53 @@ export interface ForecastData {
   daysInMonth: number;
   projectedEndSpend: number;
   isOverspending: boolean;
+}
+
+export interface NluParseResult {
+  amount: number | null;
+  categoryHint: string | null;
+  date: string | null;
+  confidence: number;
+  rawInput: string;
+}
+
+export type PredictiveAlertType =
+  | 'OVERSPEND_WARNING'
+  | 'PAYDAY_SPIKE'
+  | 'WEEKEND_PATTERN';
+
+export type AlertSeverity = 'info' | 'warning' | 'critical';
+
+export interface PredictiveAlert {
+  id: string;
+  categoryId: string;
+  type: PredictiveAlertType;
+  predictedOverspendDate: string | null;
+  predictedOverspendAmount: number;
+  message: string;
+  severity: AlertSeverity;
+}
+
+export interface SpendingPattern {
+  categoryId: string;
+  weekdayAvg: number;
+  weekendAvg: number;
+  firstWeekAvg: number;
+  midMonthAvg: number;
+  endMonthAvg: number;
+  volatility: number;
+}
+
+export interface ThresholdRecommendation {
+  categoryId: string;
+  currentThreshold: number;
+  recommendedThreshold: number;
+  reason: string;
+  basedOnMonths: number;
+}
+
+export interface CategorySuggestion {
+  categoryId: string;
+  categoryName: string;
+  confidence: number;
 }

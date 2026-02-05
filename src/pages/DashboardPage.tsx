@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../store/hooks';
 import { getDaysInMonth, getZone } from '../engine/decision';
 import { generateSuggestions } from '../engine/suggestions';
@@ -29,6 +29,7 @@ export function DashboardPage() {
     [todayDate]
   );
 
+  const navigate = useNavigate();
   const [viewDate, setViewDate] = useState<MonthYear>(currentMonth);
   const isCurrentMonth = isSameMonth(viewDate, currentMonth);
 
@@ -73,6 +74,10 @@ export function DashboardPage() {
   const actionableSuggestions = suggestions.filter(
     (s) => s.severity === 'warning' || s.action
   );
+
+  const handleCategoryClick = (categoryId: string) => {
+    navigate(`/transactions?category=${categoryId}`);
+  };
 
   const formattedDate = isCurrentMonth
     ? todayDate.toLocaleDateString('en-IN', {
@@ -177,12 +182,24 @@ export function DashboardPage() {
           const remaining = budget - spent;
 
           return (
-            <div
+            <button
               key={category.id}
-              className="bg-white border border-gray-200 rounded-lg p-4"
+              type="button"
+              onClick={() => handleCategoryClick(category.id)}
+              className="w-full bg-white border border-gray-200 rounded-lg p-4 text-left active:bg-gray-50"
             >
               <div className="flex items-center justify-between mb-2">
-                <p className="font-medium text-gray-900">{category.name}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-medium text-gray-900">{category.name}</p>
+                  <svg
+                    className="w-4 h-4 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
                 <span
                   className={`px-2 py-1 text-xs font-medium rounded ${zoneStyles[zone].badge}`}
                 >
@@ -207,7 +224,7 @@ export function DashboardPage() {
               <p className="text-xs text-gray-500 mt-2 text-right">
                 of {formatCurrency(budget)}
               </p>
-            </div>
+            </button>
           );
         })}
       </div>

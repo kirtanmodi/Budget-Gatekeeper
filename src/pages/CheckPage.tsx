@@ -2,14 +2,16 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { logDecision, setLastUsedCategory, undoLastDecision } from '../store/budgetSlice';
 import { ExpenseForm } from '../components/ExpenseForm';
+import { NluInput } from '../components/NluInput';
 import { ContextMessage } from '../components/ContextMessage';
 import { DecisionResult } from '../components/DecisionResult';
 import { PostDecisionActions } from '../components/PostDecisionActions';
 import { UndoToast } from '../components/UndoToast';
 import { calculateDecision, calculateContext, getDaysInMonth } from '../engine/decision';
+import { suggestCategory } from '../engine/categorizer';
 import { triggerHaptic } from '../utils/haptics';
 import { formatCurrency, pluralize } from '../utils/format';
-import type { Decision } from '../types';
+import type { Decision, NluParseResult } from '../types';
 
 type FlowState = 'input' | 'result' | 'success';
 
@@ -19,10 +21,15 @@ export function CheckPage() {
   const today = useAppSelector((state) => state.budget.system.today);
   const lastUsedCategoryId = useAppSelector((state) => state.budget.lastUsedCategoryId);
   const graceThreshold = useAppSelector((state) => state.budget.settings?.graceThreshold ?? 0.6);
+  const decisionLogs = useAppSelector((state) => state.budget.decisionLogs);
+  const enableSmartCategorization = useAppSelector((state) => state.budget.settings?.enableSmartCategorization ?? false);
+  const enableNluInput = useAppSelector((state) => state.budget.settings?.enableNluInput ?? false);
 
   const [flowState, setFlowState] = useState<FlowState>('input');
+  const [showNluMode, setShowNluMode] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [amount, setAmount] = useState<number>(0);
+  const [description, setDescription] = useState<string | undefined>(undefined);
   const [decision, setDecision] = useState<Decision | null>(null);
   const [showUndo, setShowUndo] = useState(false);
   const [undoMessage, setUndoMessage] = useState('');
@@ -57,21 +64,23 @@ export function CheckPage() {
     );
   }, [selectedCategory, currentDay, daysInMonth]);
 
-  const handleCheck = (categoryId: string, checkAmount: number) => {
+  const handleCheck = (categoryId: string, checkAmount: number, desc?: string) => {
     setSelectedCategoryId(categoryId);
     setAmount(checkAmount);
+    setDescription(desc);
     setShowDetails(false);
 
     const category = categories.find((c) => c.id === categoryId);
     if (!category) return;
 
+    const effectiveThreshold = category.graceThreshold ?? graceThreshold;
     const result = calculateDecision(
       category.monthlyBudget,
       category.currentSpent,
       checkAmount,
       currentDay,
       daysInMonth,
-      graceThreshold
+      effectiveThreshold
     );
 
     setDecision(result);
@@ -106,6 +115,7 @@ export function CheckPage() {
         amount,
         decision: decision.type,
         waitDays: decision.type === 'WAIT' ? decision.days : undefined,
+        description,
       })
     );
 
@@ -140,9 +150,41 @@ export function CheckPage() {
     setFlowState('input');
     setSelectedCategoryId(null);
     setAmount(0);
+    setDescription(undefined);
     setDecision(null);
     setShowDetails(false);
     setSuccessData(null);
+    setShowNluMode(false);
+  };
+
+  const handleNluParsed = useCallback(() => {
+    // Placeholder for real-time feedback
+  }, []);
+
+  const handleNluUse = (result: NluParseResult) => {
+    if (result.amount === null) return;
+
+    let catId: string | null = null;
+
+    if (result.categoryHint) {
+      const suggestion = suggestCategory(result.categoryHint, categories, decisionLogs);
+      if (suggestion) {
+        catId = suggestion.categoryId;
+      }
+    }
+
+    if (!catId && lastUsedCategoryId) {
+      catId = lastUsedCategoryId;
+    }
+
+    if (!catId && categories.length > 0) {
+      catId = categories[0].id;
+    }
+
+    if (catId) {
+      setShowNluMode(false);
+      handleCheck(catId, result.amount, result.rawInput);
+    }
   };
 
   useEffect(() => {
@@ -192,12 +234,46 @@ export function CheckPage() {
       </div>
 
       {flowState === 'input' && (
-        <ExpenseForm
-          categories={categories}
-          today={today}
-          onCheck={handleCheck}
-          lastUsedCategoryId={lastUsedCategoryId}
-        />
+        <>
+          {enableNluInput && (
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={() => setShowNluMode(!showNluMode)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm min-h-[44px] ${
+                  showNluMode
+                    ? 'bg-gray-900 text-white active:bg-gray-800'
+                    : 'bg-gray-100 text-gray-700 active:bg-gray-200'
+                }`}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+                {showNluMode ? 'Form Mode' : 'Quick Input'}
+              </button>
+            </div>
+          )}
+
+          {showNluMode ? (
+            <NluInput
+              today={today}
+              categories={categories}
+              decisionLogs={decisionLogs}
+              onParsed={handleNluParsed}
+              onUse={handleNluUse}
+              onCancel={() => setShowNluMode(false)}
+            />
+          ) : (
+            <ExpenseForm
+              categories={categories}
+              today={today}
+              onCheck={handleCheck}
+              lastUsedCategoryId={lastUsedCategoryId}
+              enableSmartCategorization={enableSmartCategorization}
+              decisionLogs={decisionLogs}
+              graceThreshold={graceThreshold}
+            />
+          )}
+        </>
       )}
 
       {flowState === 'result' && selectedCategory && context && decision && (
@@ -264,7 +340,7 @@ export function CheckPage() {
 
           <button
             onClick={() => setShowDetails(!showDetails)}
-            className="flex items-center justify-center gap-2 text-sm text-gray-500 py-2"
+            className="flex items-center justify-center gap-2 text-sm text-gray-500 py-3 min-h-[44px] active:text-gray-700"
             aria-expanded={showDetails}
             aria-label={showDetails ? 'Hide details' : 'Show details'}
           >
@@ -289,7 +365,7 @@ export function CheckPage() {
 
           <button
             onClick={resetFlow}
-            className="flex items-center justify-center gap-2 text-sm text-gray-500 py-2"
+            className="flex items-center justify-center gap-2 text-sm text-gray-500 py-3 min-h-[44px] active:text-gray-700"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />

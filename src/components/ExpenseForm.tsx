@@ -1,22 +1,62 @@
-import { useState, useMemo } from 'react';
-import type { Category } from '../types';
+import { useState, useMemo, useEffect } from 'react';
+import type { Category, DecisionLog, CategorySuggestion } from '../types';
 import { calculateDecision, getDaysInMonth } from '../engine/decision';
 import { formatCurrency } from '../utils/format';
 import { CategoryChip } from './CategoryChip';
+import { suggestCategory } from '../engine/categorizer';
 
 interface ExpenseFormProps {
   categories: Category[];
   today: string;
-  onCheck: (categoryId: string, amount: number) => void;
+  onCheck: (categoryId: string, amount: number, description?: string) => void;
   disabled?: boolean;
   lastUsedCategoryId?: string | null;
+  enableSmartCategorization?: boolean;
+  decisionLogs?: DecisionLog[];
+  graceThreshold?: number;
 }
 
-export function ExpenseForm({ categories, today, onCheck, disabled, lastUsedCategoryId }: ExpenseFormProps) {
+export function ExpenseForm({
+  categories,
+  today,
+  onCheck,
+  disabled,
+  lastUsedCategoryId,
+  enableSmartCategorization = false,
+  decisionLogs = [],
+  graceThreshold = 0.6,
+}: ExpenseFormProps) {
   const [amount, setAmount] = useState('');
   const [categoryId, setCategoryId] = useState(lastUsedCategoryId || '');
+  const [description, setDescription] = useState('');
+  const [debouncedDescription, setDebouncedDescription] = useState('');
 
   const quickAmounts = [100, 500, 1000, 2000, 5000];
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedDescription(description);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [description]);
+
+  const suggestion = useMemo<CategorySuggestion | null>(() => {
+    if (!enableSmartCategorization || !debouncedDescription.trim()) {
+      return null;
+    }
+    return suggestCategory(debouncedDescription, categories, decisionLogs);
+  }, [debouncedDescription, categories, decisionLogs, enableSmartCategorization]);
+
+  useEffect(() => {
+    if (suggestion) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional sync from suggestion
+      setCategoryId(suggestion.categoryId);
+    }
+  }, [suggestion]);
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDescription(e.target.value);
+  };
 
   const preview = useMemo(() => {
     const numAmount = parseFloat(amount);
@@ -26,17 +66,19 @@ export function ExpenseForm({ categories, today, onCheck, disabled, lastUsedCate
     const todayDate = new Date(today);
     const currentDay = todayDate.getDate();
     const daysInMonth = getDaysInMonth(todayDate.getFullYear(), todayDate.getMonth());
+    const effectiveThreshold = category.graceThreshold ?? graceThreshold;
     const decision = calculateDecision(
       category.monthlyBudget,
       category.currentSpent,
       numAmount,
       currentDay,
-      daysInMonth
+      daysInMonth,
+      effectiveThreshold
     );
     if (decision.type === 'YES') return 'YES';
     if (decision.type === 'WAIT') return `WAIT ${decision.days}d`;
     return 'NO';
-  }, [amount, categoryId, categories, today]);
+  }, [amount, categoryId, categories, today, graceThreshold]);
 
   const handleQuickAmount = (amt: number) => {
     setAmount(amt.toString());
@@ -46,7 +88,7 @@ export function ExpenseForm({ categories, today, onCheck, disabled, lastUsedCate
     e.preventDefault();
     const numAmount = parseFloat(amount);
     if (categoryId && numAmount > 0) {
-      onCheck(categoryId, numAmount);
+      onCheck(categoryId, numAmount, description.trim() || undefined);
     }
   };
 
@@ -93,15 +135,46 @@ export function ExpenseForm({ categories, today, onCheck, disabled, lastUsedCate
       </div>
 
       <div className="flex flex-col gap-2">
+        <label htmlFor="description" className="text-sm font-medium text-gray-700">
+          Description
+          {enableSmartCategorization && (
+            <span className="text-xs text-gray-400 font-normal ml-1">(auto-suggests category)</span>
+          )}
+        </label>
+        <div className="relative">
+          <input
+            id="description"
+            type="text"
+            value={description}
+            onChange={handleDescriptionChange}
+            placeholder="e.g., uber, pizza hut, groceries"
+            disabled={disabled}
+            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent disabled:bg-gray-100"
+          />
+          {suggestion && (
+            <div className="absolute right-2 top-1/2 -translate-y-1/2">
+              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                → {suggestion.categoryName}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
         <span className="text-sm font-medium text-gray-700">Category</span>
         <div className="flex flex-wrap gap-2">
           {categories.map((cat) => (
-            <CategoryChip
-              key={cat.id}
-              category={cat}
-              selected={categoryId === cat.id}
-              onClick={() => setCategoryId(cat.id)}
-            />
+            <div key={cat.id} className="relative">
+              <CategoryChip
+                category={cat}
+                selected={categoryId === cat.id}
+                onClick={() => setCategoryId(cat.id)}
+              />
+              {suggestion?.categoryId === cat.id && categoryId === cat.id && (
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full" title="AI suggested" />
+              )}
+            </div>
           ))}
         </div>
       </div>
