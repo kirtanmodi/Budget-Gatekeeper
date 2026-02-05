@@ -14,7 +14,16 @@ npm run preview  # Local production preview
 npm run deploy   # Build + Netlify deploy --prod
 ```
 
-## MAKE Sure any page you create is Mobile first
+## Mobile-First Design
+
+This is a **mobile-first PWA**. All UI must be designed for phones first:
+- Touch targets: minimum 44×44px
+- Bottom navigation bar (NavBar) — keep content above `pb-20`
+- Single-column layouts, full-width cards
+- Large, readable text (base 16px)
+- Swipe gestures supported (e.g., CheckPage swipe for Bought/Skip)
+- Haptic feedback on key actions
+- No hover-dependent interactions
 
 ## Architecture
 
