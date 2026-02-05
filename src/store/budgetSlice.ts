@@ -17,6 +17,10 @@ const initialState: BudgetState = {
   lastUsedCategoryId: null,
   settings: {
     graceThreshold: 0.6,
+    enableSmartCategorization: true,
+    enablePredictiveAlerts: true,
+    enableNluInput: true,
+    enablePersonalizedThresholds: true,
   },
 };
 
