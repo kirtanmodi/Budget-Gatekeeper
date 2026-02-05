@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import type { Category } from '../types';
-import { getEffectiveBudget } from '../store/budgetSlice';
 import { formatCurrency } from '../utils/format';
 
 interface CategoryBudgetRowProps {
@@ -11,8 +10,6 @@ interface CategoryBudgetRowProps {
 
 export function CategoryBudgetRow({ category, onBudgetChange, onRemove }: CategoryBudgetRowProps) {
   const [editValue, setEditValue] = useState<string | null>(null);
-  const hasTemporaryAdjustment = category.temporaryAdjustment !== undefined && category.temporaryAdjustment !== 0;
-  const effectiveBudget = getEffectiveBudget(category);
 
   const displayValue = editValue ?? category.monthlyBudget.toString();
 
@@ -48,13 +45,6 @@ export function CategoryBudgetRow({ category, onBudgetChange, onRemove }: Catego
         <p className="text-sm text-gray-500">
           Spent: {formatCurrency(category.currentSpent)}
         </p>
-        {hasTemporaryAdjustment && (
-          <p className="text-xs text-blue-600 mt-1">
-            {category.temporaryAdjustment! > 0 ? '+' : ''}
-            {formatCurrency(category.temporaryAdjustment!)} this month
-            (effective: {formatCurrency(effectiveBudget)})
-          </p>
-        )}
       </div>
       <div className="flex items-center gap-2">
         <span className="text-gray-500">₹</span>

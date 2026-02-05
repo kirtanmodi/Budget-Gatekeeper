@@ -1,9 +1,8 @@
-import { useState } from 'react';
 import type { Suggestion, SuggestionSeverity, SuggestionType } from '../types';
 
 interface SuggestionCardProps {
   suggestion: Suggestion;
-  onAction?: (suggestion: Suggestion, permanent: boolean) => void;
+  onAction?: (suggestion: Suggestion) => void;
   onDismiss?: (suggestion: Suggestion) => void;
 }
 
@@ -36,7 +35,6 @@ function SuggestionIcon({ type, severity }: { type: SuggestionType; severity: Su
         </svg>
       );
     case 'BUDGET_DECREASE':
-    case 'REALLOCATION':
       return (
         <svg className={`w-5 h-5 ${colorClass}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
@@ -66,9 +64,6 @@ function SuggestionIcon({ type, severity }: { type: SuggestionType; severity: Su
 
 export function SuggestionCard({ suggestion, onAction, onDismiss }: SuggestionCardProps) {
   const styles = severityStyles[suggestion.severity];
-  const [isPermanent, setIsPermanent] = useState(false);
-
-  const showScopeToggle = suggestion.action && onAction;
 
   return (
     <div className={`${styles.bg} ${styles.border} border rounded-lg p-4`}>
@@ -80,36 +75,11 @@ export function SuggestionCard({ suggestion, onAction, onDismiss }: SuggestionCa
           <h3 className="font-medium text-gray-900">{suggestion.title}</h3>
           <p className="text-sm text-gray-600 mt-1">{suggestion.description}</p>
 
-          {showScopeToggle && (
-            <div className="flex items-center gap-4 mt-3">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name={`scope-${suggestion.id}`}
-                  checked={!isPermanent}
-                  onChange={() => setIsPermanent(false)}
-                  className="w-4 h-4 text-gray-900"
-                />
-                <span className="text-sm text-gray-700">This month only</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name={`scope-${suggestion.id}`}
-                  checked={isPermanent}
-                  onChange={() => setIsPermanent(true)}
-                  className="w-4 h-4 text-gray-900"
-                />
-                <span className="text-sm text-gray-700">Permanently</span>
-              </label>
-            </div>
-          )}
-
           {(suggestion.action || onDismiss) && (
             <div className="flex flex-wrap items-center gap-2 mt-3">
               {suggestion.action && onAction && (
                 <button
-                  onClick={() => onAction(suggestion, isPermanent)}
+                  onClick={() => onAction(suggestion)}
                   className="px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-md active:bg-gray-700 min-h-[44px]"
                 >
                   {suggestion.action.label}

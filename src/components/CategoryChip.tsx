@@ -1,5 +1,4 @@
 import type { Category } from '../types';
-import { getEffectiveBudget } from '../store/budgetSlice';
 import { formatCompactCurrency } from '../utils/format';
 
 interface CategoryChipProps {
@@ -9,8 +8,7 @@ interface CategoryChipProps {
 }
 
 export function CategoryChip({ category, selected, onClick }: CategoryChipProps) {
-  const effectiveBudget = getEffectiveBudget(category);
-  const remaining = effectiveBudget - category.currentSpent;
+  const remaining = category.monthlyBudget - category.currentSpent;
   const isOver = remaining < 0;
 
   return (

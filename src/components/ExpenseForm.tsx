@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import type { Category } from '../types';
 import { calculateDecision, getDaysInMonth } from '../engine/decision';
 import { formatCurrency } from '../utils/format';
-import { getEffectiveBudget } from '../store/budgetSlice';
 import { CategoryChip } from './CategoryChip';
 
 interface ExpenseFormProps {
@@ -28,7 +27,7 @@ export function ExpenseForm({ categories, today, onCheck, disabled, lastUsedCate
     const currentDay = todayDate.getDate();
     const daysInMonth = getDaysInMonth(todayDate.getFullYear(), todayDate.getMonth());
     const decision = calculateDecision(
-      getEffectiveBudget(category),
+      category.monthlyBudget,
       category.currentSpent,
       numAmount,
       currentDay,

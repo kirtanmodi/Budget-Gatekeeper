@@ -1,5 +1,4 @@
 import type { Category, DecisionLog, ForecastData, ForecastDataPoint } from '../types';
-import { getEffectiveBudget } from '../store/budgetSlice';
 
 export function generateForecastData(
   categories: Category[],
@@ -8,7 +7,7 @@ export function generateForecastData(
   daysInMonth: number
 ): ForecastData {
   const totalBudget = categories.reduce(
-    (sum, c) => sum + getEffectiveBudget(c),
+    (sum, c) => sum + c.monthlyBudget,
     0
   );
   const totalSpent = categories.reduce(

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
-import { updateBudgetWithScope, getEffectiveBudget } from '../store/budgetSlice';
+import { updateBudget } from '../store/budgetSlice';
 import {
   generateSuggestions,
   getDecisionStats,
@@ -76,44 +76,17 @@ export function InsightsPage() {
 
   const netProjection = projections.reduce((sum, p) => sum + p.projectedDelta, 0);
 
-  const handleAction = (suggestion: Suggestion, permanent: boolean) => {
+  const handleAction = (suggestion: Suggestion) => {
     if (!suggestion.action) return;
 
     if (suggestion.action.type === 'UPDATE_BUDGET') {
       dispatch(
-        updateBudgetWithScope({
+        updateBudget({
           categoryId: suggestion.action.categoryId,
           newBudget: suggestion.action.amount,
-          permanent,
         })
       );
       setDismissedIds((prev) => new Set([...prev, suggestion.id]));
-    } else if (suggestion.action.type === 'REALLOCATE') {
-      const { categoryId, amount, targetCategoryId } = suggestion.action;
-      if (!targetCategoryId) return;
-
-      const fromCategory = categories.find((c) => c.id === categoryId);
-      const toCategory = categories.find((c) => c.id === targetCategoryId);
-
-      if (fromCategory && toCategory) {
-        const fromEffective = getEffectiveBudget(fromCategory);
-        const toEffective = getEffectiveBudget(toCategory);
-        dispatch(
-          updateBudgetWithScope({
-            categoryId: categoryId,
-            newBudget: fromEffective - amount,
-            permanent,
-          })
-        );
-        dispatch(
-          updateBudgetWithScope({
-            categoryId: targetCategoryId,
-            newBudget: toEffective + amount,
-            permanent,
-          })
-        );
-        setDismissedIds((prev) => new Set([...prev, suggestion.id]));
-      }
     }
   };
 

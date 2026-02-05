@@ -12,7 +12,7 @@ export function DebugPage() {
 
   const {
     categories,
-    currentSnapshot,
+    currentPeriod,
     decisionLogs,
     archivedLogs,
     system,
@@ -83,6 +83,17 @@ export function DebugPage() {
             <span className="font-mono text-gray-900">{system.today}</span>
           </div>
           <div className="flex justify-between">
+            <span className="text-gray-600">Current Period</span>
+            <span className="font-mono text-gray-900">
+              {currentPeriod
+                ? new Date(currentPeriod.year, currentPeriod.month).toLocaleDateString('en-IN', {
+                    month: 'short',
+                    year: 'numeric',
+                  })
+                : 'null'}
+            </span>
+          </div>
+          <div className="flex justify-between">
             <span className="text-gray-600">Last Used Category</span>
             <span className="font-mono text-gray-900">
               {lastUsedCategoryId || 'null'}
@@ -123,32 +134,6 @@ export function DebugPage() {
               ))}
             </tbody>
           </table>
-        </div>
-      </section>
-
-      <section className="mb-6">
-        <h2 className="text-sm font-semibold text-gray-500 uppercase mb-2">
-          Month Snapshot
-        </h2>
-        <div className="bg-gray-50 rounded-lg p-4">
-          {currentSnapshot ? (
-            <div>
-              <div className="text-gray-900 font-medium mb-2">
-                {new Date(
-                  currentSnapshot.year,
-                  currentSnapshot.month
-                ).toLocaleDateString('en-IN', {
-                  month: 'long',
-                  year: 'numeric',
-                })}
-              </div>
-              <div className="text-xs text-gray-500">
-                {currentSnapshot.categories.length} categories at month start
-              </div>
-            </div>
-          ) : (
-            <span className="text-gray-400 italic">No snapshot</span>
-          )}
         </div>
       </section>
 

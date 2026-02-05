@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
-import { updateBudget, addCategory, removeCategory, getEffectiveBudget } from '../store/budgetSlice';
+import { updateBudget, addCategory, removeCategory } from '../store/budgetSlice';
 import { CategoryBudgetRow } from '../components/CategoryBudgetRow';
 import { formatCurrency } from '../utils/format';
 
 export function SettingsPage() {
   const dispatch = useAppDispatch();
   const categories = useAppSelector((state) => state.budget.categories);
-  const currentSnapshot = useAppSelector((state) => state.budget.currentSnapshot);
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [newName, setNewName] = useState('');
@@ -31,9 +30,7 @@ export function SettingsPage() {
     }
   };
 
-  const totalBaseBudget = categories.reduce((sum, c) => sum + c.monthlyBudget, 0);
-  const totalEffectiveBudget = categories.reduce((sum, c) => sum + getEffectiveBudget(c), 0);
-  const hasAnyAdjustments = totalBaseBudget !== totalEffectiveBudget;
+  const totalBudget = categories.reduce((sum, c) => sum + c.monthlyBudget, 0);
 
   return (
     <div className="flex flex-col min-h-screen pb-20 px-4 pt-6">
@@ -46,26 +43,12 @@ export function SettingsPage() {
         <div className="flex justify-between items-center">
           <span className="text-gray-600">Total Monthly Budget</span>
           <span className="text-xl font-semibold text-gray-900">
-            {formatCurrency(totalBaseBudget)}
+            {formatCurrency(totalBudget)}
           </span>
         </div>
-        {hasAnyAdjustments && (
-          <div className="flex justify-between items-center mt-1">
-            <span className="text-sm text-blue-600">Effective (with adjustments)</span>
-            <span className="text-sm font-medium text-blue-600">
-              {formatCurrency(totalEffectiveBudget)}
-            </span>
-          </div>
-        )}
-        {currentSnapshot && (
-          <p className="text-xs text-gray-500 mt-2">
-            Changes apply immediately. Month snapshot taken at start of{' '}
-            {new Date(currentSnapshot.year, currentSnapshot.month).toLocaleDateString('en-IN', {
-              month: 'long',
-              year: 'numeric',
-            })}
-          </p>
-        )}
+        <p className="text-xs text-gray-500 mt-2">
+          Changes apply immediately.
+        </p>
       </div>
 
       <div className="flex-1">

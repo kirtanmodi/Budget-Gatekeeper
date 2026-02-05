@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppSelector } from '../store/hooks';
-import { getEffectiveBudget } from '../store/budgetSlice';
 import { getDaysInMonth, getZone } from '../engine/decision';
 import { generateSuggestions } from '../engine/suggestions';
 import { zoneLabels, zoneStyles } from '../constants/zones';
@@ -168,18 +167,14 @@ export function DashboardPage() {
 
       <div className="flex-1 space-y-3">
         {categories.map((category) => {
-          const effectiveBudget = getEffectiveBudget(category);
+          const budget = category.monthlyBudget;
           const spent = getCategorySpent(category.id, category.currentSpent);
-          const zone = getZone(spent, effectiveBudget);
+          const zone = getZone(spent, budget);
           const percent =
-            effectiveBudget > 0
-              ? Math.min(100, (spent / effectiveBudget) * 100)
+            budget > 0
+              ? Math.min(100, (spent / budget) * 100)
               : 0;
-          const remaining = effectiveBudget - spent;
-          const hasTemporaryAdjustment =
-            isCurrentMonth &&
-            category.temporaryAdjustment !== undefined &&
-            category.temporaryAdjustment !== 0;
+          const remaining = budget - spent;
 
           return (
             <div
@@ -210,12 +205,7 @@ export function DashboardPage() {
               </div>
 
               <p className="text-xs text-gray-500 mt-2 text-right">
-                of {formatCurrency(effectiveBudget)}
-                {hasTemporaryAdjustment && (
-                  <span className="text-blue-500 ml-1">
-                    (adjusted this month)
-                  </span>
-                )}
+                of {formatCurrency(budget)}
               </p>
             </div>
           );

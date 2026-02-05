@@ -8,7 +8,7 @@ export function calculateDecision(
   daysInMonth: number
 ): Decision {
   const total = spentSoFar + newAmount;
-  const graceLimit = categoryBudget * 0.8;
+  const graceLimit = categoryBudget * 0.6;
 
   // Time-weighted: 50% allowed on day 1, scaling to 100% by month end
   const progress = currentDay / daysInMonth;
@@ -83,7 +83,7 @@ export type Zone = 'FREE' | 'CONTROL' | 'STOP';
 export function getZone(spent: number, budget: number): Zone {
   if (budget <= 0) return 'STOP';
   const percent = (spent / budget) * 100;
-  if (percent <= 80) return 'FREE';
+  if (percent <= 60) return 'FREE';
   if (percent <= 100) return 'CONTROL';
   return 'STOP';
 }

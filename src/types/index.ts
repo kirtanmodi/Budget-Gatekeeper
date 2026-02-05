@@ -1,20 +1,7 @@
-export interface CategorySnapshot {
-  id: string;
-  name: string;
-  monthlyBudget: number;
-}
-
-export interface MonthSnapshot {
-  month: number;
-  year: number;
-  categories: CategorySnapshot[];
-}
-
 export interface Category {
   id: string;
   name: string;
   monthlyBudget: number;
-  temporaryAdjustment?: number;
   currentSpent: number;
 }
 
@@ -33,7 +20,7 @@ export interface SystemState {
 
 export interface BudgetState {
   categories: Category[];
-  currentSnapshot: MonthSnapshot | null;
+  currentPeriod: { month: number; year: number } | null;
   decisionLogs: DecisionLog[];
   archivedLogs: DecisionLog[];
   system: SystemState;
@@ -65,7 +52,6 @@ export interface ContextInfo {
 export type SuggestionType =
   | 'BUDGET_INCREASE'
   | 'BUDGET_DECREASE'
-  | 'REALLOCATION'
   | 'PACE_WARNING'
   | 'SURPLUS'
   | 'ON_TRACK';
@@ -74,10 +60,9 @@ export type SuggestionSeverity = 'info' | 'warning' | 'success';
 
 export interface SuggestionAction {
   label: string;
-  type: 'UPDATE_BUDGET' | 'REALLOCATE';
+  type: 'UPDATE_BUDGET';
   categoryId: string;
   amount: number;
-  targetCategoryId?: string;
 }
 
 export interface Suggestion {

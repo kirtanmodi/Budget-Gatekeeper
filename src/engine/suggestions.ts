@@ -7,7 +7,6 @@ import type {
   PaceProjection,
 } from '../types';
 import { getDaysInMonth } from './decision';
-import { getEffectiveBudget } from '../store/budgetSlice';
 import { formatCurrency } from '../utils/format';
 
 const WAIT_RATIO_THRESHOLD = 0.4;
@@ -21,7 +20,7 @@ function analyzeDecisionOutcomes(
   const analysisMap = new Map<string, CategoryAnalysis>();
 
   for (const category of categories) {
-    const effectiveBudget = getEffectiveBudget(category);
+    const budget = category.monthlyBudget;
     analysisMap.set(category.id, {
       categoryId: category.id,
       categoryName: category.name,
@@ -30,11 +29,11 @@ function analyzeDecisionOutcomes(
       waitCount: 0,
       noCount: 0,
       waitRatio: 0,
-      budget: effectiveBudget,
+      budget,
       spent: category.currentSpent,
       usedPercent:
-        effectiveBudget > 0
-          ? (category.currentSpent / effectiveBudget) * 100
+        budget > 0
+          ? (category.currentSpent / budget) * 100
           : 0,
     });
   }
@@ -67,18 +66,18 @@ export function calculatePaceProjections(
   if (currentDay <= 0) return [];
 
   return categories.map((category) => {
-    const effectiveBudget = getEffectiveBudget(category);
+    const budget = category.monthlyBudget;
     const dailyBurnRate = category.currentSpent / currentDay;
     const projectedEndSpend = dailyBurnRate * daysInMonth;
-    const projectedDelta = effectiveBudget - projectedEndSpend;
+    const projectedDelta = budget - projectedEndSpend;
 
     return {
       categoryId: category.id,
       categoryName: category.name,
       projectedEndSpend,
-      budget: effectiveBudget,
+      budget,
       projectedDelta,
-      isOverspending: projectedEndSpend > effectiveBudget,
+      isOverspending: projectedEndSpend > budget,
     };
   });
 }
@@ -138,33 +137,6 @@ function createUnderutilizedSuggestion(
   };
 }
 
-function createReallocationSuggestion(
-  fromAnalysis: CategoryAnalysis,
-  toAnalysis: CategoryAnalysis
-): Suggestion {
-  const transferAmount =
-    Math.ceil(Math.min(
-      fromAnalysis.budget - fromAnalysis.spent,
-      toAnalysis.budget * 0.2
-    ) / 1000) * 1000;
-
-  return {
-    id: `reallocation-${fromAnalysis.categoryId}-${toAnalysis.categoryId}`,
-    type: 'REALLOCATION',
-    severity: 'info',
-    categoryId: fromAnalysis.categoryId,
-    title: `Move budget to ${toAnalysis.categoryName}?`,
-    description: `${fromAnalysis.categoryName} is underspent while ${toAnalysis.categoryName} is tight. Consider moving ${formatCurrency(transferAmount)}.`,
-    action: {
-      label: `Move ${formatCurrency(transferAmount)}`,
-      type: 'REALLOCATE',
-      categoryId: fromAnalysis.categoryId,
-      amount: transferAmount,
-      targetCategoryId: toAnalysis.categoryId,
-    },
-  };
-}
-
 function createSurplusSuggestion(
   totalProjectedSavings: number
 ): Suggestion {
@@ -203,16 +175,12 @@ export function generateSuggestions(state: BudgetState): Suggestion[] {
   const analyses = analyzeDecisionOutcomes(decisionLogs, categories);
   const projections = calculatePaceProjections(categories, currentDay, daysInMonth);
 
-  const tightCategories: CategoryAnalysis[] = [];
-  const underutilizedCategories: CategoryAnalysis[] = [];
-
   for (const analysis of analyses) {
     if (
       analysis.totalTransactions >= 3 &&
       analysis.waitRatio >= WAIT_RATIO_THRESHOLD
     ) {
       suggestions.push(createBudgetIncreaseSuggestion(analysis));
-      tightCategories.push(analysis);
     }
 
     const midpoint = daysInMonth / 2;
@@ -220,14 +188,7 @@ export function generateSuggestions(state: BudgetState): Suggestion[] {
       currentDay >= midpoint &&
       analysis.usedPercent < UNDERUTILIZED_THRESHOLD * 100
     ) {
-      const suggestion = createUnderutilizedSuggestion(
-        analysis,
-        currentDay,
-        daysInMonth
-      );
-      if (suggestion) {
-        underutilizedCategories.push(analysis);
-      }
+      createUnderutilizedSuggestion(analysis, currentDay, daysInMonth);
     }
   }
 
@@ -245,19 +206,6 @@ export function generateSuggestions(state: BudgetState): Suggestion[] {
         suggestions.push(createPaceWarningSuggestion(projection));
       }
     }
-  }
-
-  if (underutilizedCategories.length > 0 && tightCategories.length > 0) {
-    const bestUnderutilized = underutilizedCategories.sort(
-      (a, b) => a.usedPercent - b.usedPercent
-    )[0];
-    const mostTight = tightCategories.sort(
-      (a, b) => b.waitRatio - a.waitRatio
-    )[0];
-
-    suggestions.push(
-      createReallocationSuggestion(bestUnderutilized, mostTight)
-    );
   }
 
   const totalProjectedSavings = projections.reduce(

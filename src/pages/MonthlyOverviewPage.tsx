@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
 import { useAppSelector } from '../store/hooks';
-import { getEffectiveBudget } from '../store/budgetSlice';
 import { getDaysInMonth } from '../engine/decision';
 import { formatCurrency, formatCompactCurrency } from '../utils/format';
 import { getTotalBudget } from '../utils/budget';
@@ -133,15 +132,15 @@ export function MonthlyOverviewPage() {
   const categoryBreakdown = useMemo(() => {
     return [...categories]
       .map((c) => {
-        const effectiveBudget = getEffectiveBudget(c);
+        const budget = c.monthlyBudget;
         const spent = isCurrentMonth
           ? c.currentSpent
           : historicalSpentMap?.get(c.id) ?? 0;
         return {
           ...c,
           spent,
-          effectiveBudget,
-          percent: effectiveBudget > 0 ? (spent / effectiveBudget) * 100 : 0,
+          budget,
+          percent: budget > 0 ? (spent / budget) * 100 : 0,
         };
       })
       .sort((a, b) => b.percent - a.percent);
@@ -232,7 +231,7 @@ export function MonthlyOverviewPage() {
                 </span>
                 <span className="text-gray-500 ml-2">
                   {formatCompactCurrency(category.spent)} /{' '}
-                  {formatCompactCurrency(category.effectiveBudget)}
+                  {formatCompactCurrency(category.budget)}
                 </span>
               </div>
               <div className="flex items-center gap-2">

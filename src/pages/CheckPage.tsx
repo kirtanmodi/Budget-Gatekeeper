@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
-import { logDecision, setLastUsedCategory, undoLastDecision, getEffectiveBudget } from '../store/budgetSlice';
+import { logDecision, setLastUsedCategory, undoLastDecision } from '../store/budgetSlice';
 import { ExpenseForm } from '../components/ExpenseForm';
 import { ContextMessage } from '../components/ContextMessage';
 import { DecisionResult } from '../components/DecisionResult';
@@ -30,7 +30,7 @@ export function CheckPage() {
   const [successData, setSuccessData] = useState<{
     categoryName: string;
     remaining: number;
-    effectiveBudget: number;
+    budget: number;
     daysLeft: number;
     dailyAllowance: number;
   } | null>(null);
@@ -49,7 +49,7 @@ export function CheckPage() {
   const context = useMemo(() => {
     if (!selectedCategory) return null;
     return calculateContext(
-      getEffectiveBudget(selectedCategory),
+      selectedCategory.monthlyBudget,
       selectedCategory.currentSpent,
       currentDay,
       daysInMonth
@@ -65,7 +65,7 @@ export function CheckPage() {
     if (!category) return;
 
     const result = calculateDecision(
-      getEffectiveBudget(category),
+      category.monthlyBudget,
       category.currentSpent,
       checkAmount,
       currentDay,
@@ -93,9 +93,9 @@ export function CheckPage() {
     if (!category) return;
 
     const categoryName = category.name;
-    const effectiveBudget = getEffectiveBudget(category);
+    const budget = category.monthlyBudget;
     const newSpent = category.currentSpent + amount;
-    const newRemaining = effectiveBudget - newSpent;
+    const newRemaining = budget - newSpent;
     const newDailyAllowance = daysLeft > 0 ? newRemaining / daysLeft : 0;
 
     dispatch(
@@ -110,7 +110,7 @@ export function CheckPage() {
     setSuccessData({
       categoryName,
       remaining: newRemaining,
-      effectiveBudget,
+      budget,
       daysLeft,
       dailyAllowance: newDailyAllowance,
     });
@@ -176,9 +176,9 @@ export function CheckPage() {
   const remainingAfter = remainingBefore - amount;
   const daysLeft = context?.daysLeft ?? 1;
   const dailyAfter = remainingAfter / daysLeft;
-  const effectiveBudgetForResult = selectedCategory ? getEffectiveBudget(selectedCategory) : 0;
-  const usedPercentBefore = effectiveBudgetForResult > 0 ? ((effectiveBudgetForResult - remainingBefore) / effectiveBudgetForResult) * 100 : 0;
-  const usedPercentAfter = effectiveBudgetForResult > 0 ? ((effectiveBudgetForResult - remainingAfter) / effectiveBudgetForResult) * 100 : 0;
+  const budgetForResult = selectedCategory ? selectedCategory.monthlyBudget : 0;
+  const usedPercentBefore = budgetForResult > 0 ? ((budgetForResult - remainingBefore) / budgetForResult) * 100 : 0;
+  const usedPercentAfter = budgetForResult > 0 ? ((budgetForResult - remainingAfter) / budgetForResult) * 100 : 0;
 
   return (
     <div className="flex flex-col min-h-screen pb-20 px-4 pt-6">
@@ -324,7 +324,7 @@ export function CheckPage() {
                 className={`h-full transition-all ${
                   successData.remaining < 0 ? 'bg-red-500' : successData.remaining < successData.dailyAllowance * 3 ? 'bg-amber-500' : 'bg-emerald-500'
                 }`}
-                style={{ width: `${Math.min(100, Math.max(0, ((successData.effectiveBudget - successData.remaining) / successData.effectiveBudget) * 100))}%` }}
+                style={{ width: `${Math.min(100, Math.max(0, ((successData.budget - successData.remaining) / successData.budget) * 100))}%` }}
               />
             </div>
             <div className="flex justify-between text-sm">
