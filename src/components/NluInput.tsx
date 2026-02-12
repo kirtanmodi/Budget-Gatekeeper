@@ -78,7 +78,7 @@ export function NluInput({ today, categories, decisionLogs, onParsed, onUse, onC
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder='Try: "Spent 500 on dinner yesterday"'
-          className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent resize-none min-h-[80px]"
+          className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-nf-red focus:border-transparent resize-none min-h-[80px]"
           autoFocus
         />
         {isProcessing && (
@@ -110,8 +110,8 @@ export function NluInput({ today, categories, decisionLogs, onParsed, onUse, onC
                     onClick={() => setManualCategoryId(cat.id)}
                     className={`px-3 py-1.5 text-sm rounded-full border transition-colors min-h-[36px] ${
                       isSelected
-                        ? 'bg-gray-900 text-white border-gray-900'
-                        : 'bg-white text-gray-700 border-gray-300 active:bg-gray-100'
+                        ? 'bg-nf-red text-white border-nf-red'
+                        : 'bg-gray-100 text-gray-700 border-gray-300 active:bg-gray-200'
                     }`}
                   >
                     {cat.name}
@@ -160,7 +160,7 @@ export function NluInput({ today, categories, decisionLogs, onParsed, onUse, onC
         <button
           onClick={handleUse}
           disabled={!canUse}
-          className="flex-1 py-3 bg-gray-900 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed active:bg-gray-800 min-h-[48px] font-medium"
+          className="flex-1 py-3 bg-nf-red text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed active:bg-nf-red-dark min-h-[48px] font-medium"
         >
           Use This
         </button>

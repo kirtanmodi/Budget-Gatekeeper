@@ -277,7 +277,7 @@ export function MonthlyOverviewPage() {
                 <div key={day.date} className="flex-1 flex flex-col items-center">
                   <div
                     className={`w-full rounded-t transition-all ${
-                      day.amount > 0 ? 'bg-gray-700' : 'bg-gray-300'
+                      day.amount > 0 ? 'bg-nf-red' : 'bg-gray-300'
                     }`}
                     style={{ height: `${height}%`, minHeight: '4px' }}
                   />
@@ -305,19 +305,19 @@ export function MonthlyOverviewPage() {
         <div className="bg-gray-100 rounded-lg p-4">
           <h2 className="text-sm font-medium text-gray-700 mb-3">Key Stats</h2>
           <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="bg-white rounded-lg p-3">
+            <div className="bg-gray-100 rounded-lg p-3">
               <p className="text-lg font-semibold text-gray-900">
                 {stats.transactionCount}
               </p>
               <p className="text-xs text-gray-500">Transactions</p>
             </div>
-            <div className="bg-white rounded-lg p-3">
+            <div className="bg-gray-100 rounded-lg p-3">
               <p className="text-lg font-semibold text-gray-900">
                 {formatCompactCurrency(stats.avgPerTransaction)}
               </p>
               <p className="text-xs text-gray-500">Avg/txn</p>
             </div>
-            <div className="bg-white rounded-lg p-3">
+            <div className="bg-gray-100 rounded-lg p-3">
               <p className="text-lg font-semibold text-gray-900">{stats.peakDay}</p>
               <p className="text-xs text-gray-500">Peak day</p>
             </div>

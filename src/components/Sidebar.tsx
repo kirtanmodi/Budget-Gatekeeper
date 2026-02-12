@@ -171,7 +171,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        className={`fixed top-0 left-0 h-full w-64 bg-white z-50 transform ${
+        className={`fixed top-0 left-0 h-full w-64 bg-gray-50 z-50 transform ${
           isDragging ? '' : 'transition-transform duration-300 ease-out'
         } ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
         style={{ transform: isOpen ? `translateX(${dragOffset}px)` : 'translateX(-100%)' }}

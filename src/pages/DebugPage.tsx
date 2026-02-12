@@ -76,13 +76,13 @@ export function DebugPage() {
       <div className="flex flex-wrap gap-2 mb-6">
         <button
           onClick={handleExport}
-          className="flex-1 py-2 px-3 bg-gray-900 text-white rounded-lg text-sm font-medium min-w-[100px] min-h-[44px] active:bg-gray-800"
+          className="flex-1 py-2 px-3 bg-nf-red text-white rounded-lg text-sm font-medium min-w-[100px] min-h-[44px] active:bg-nf-red-dark"
         >
           Export JSON
         </button>
         <button
           onClick={handleExportCSV}
-          className="flex-1 py-2 px-3 bg-gray-700 text-white rounded-lg text-sm font-medium min-w-[100px] min-h-[44px] active:bg-gray-600"
+          className="flex-1 py-2 px-3 bg-gray-200 text-white rounded-lg text-sm font-medium min-w-[100px] min-h-[44px] active:bg-gray-300"
         >
           Export CSV
         </button>
@@ -297,7 +297,7 @@ export function DebugPage() {
 
       {showConfirmReset && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl p-6 max-w-sm w-full">
+          <div className="bg-gray-100 rounded-xl p-6 max-w-sm w-full">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               Clear All Data?
             </h3>

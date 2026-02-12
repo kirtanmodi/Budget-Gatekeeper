@@ -70,12 +70,12 @@ function App() {
 
   return (
     <div
-      className="min-h-screen bg-white"
+      className="min-h-screen bg-gray-50"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
       {!isAuthPage && (
-        <header className="fixed top-0 left-0 right-0 h-12 bg-white border-b border-gray-200 flex items-center justify-between px-4 z-40 safe-area-top">
+        <header className="fixed top-0 left-0 right-0 h-12 bg-gray-50 border-b border-gray-200 flex items-center justify-between px-4 z-40 safe-area-top">
           <button
             onClick={() => setSidebarOpen(true)}
             className="p-2 -ml-2 text-gray-600 active:text-gray-900"

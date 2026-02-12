@@ -3,11 +3,11 @@ import { NavLink } from 'react-router-dom';
 export function NavBar() {
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `flex flex-col items-center justify-center flex-1 py-3 min-h-[56px] ${
-      isActive ? 'text-gray-900' : 'text-gray-400'
+      isActive ? 'text-nf-red' : 'text-gray-400'
     }`;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 bg-gray-50 border-t border-gray-200 safe-area-bottom">
       <div className="flex">
         <NavLink to="/" className={linkClass} aria-label="Check purchase">
           <svg

@@ -105,7 +105,7 @@ export function SettingsPage() {
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="Category name"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-nf-red"
                 autoFocus
               />
               <div className="flex items-center gap-2">
@@ -116,14 +116,14 @@ export function SettingsPage() {
                   value={newBudget}
                   onChange={(e) => setNewBudget(e.target.value.replace(/[^0-9]/g, ''))}
                   placeholder="Monthly budget"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-nf-red"
                 />
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={handleAddCategory}
                   disabled={!newName.trim() || !parseFloat(newBudget)}
-                  className="flex-1 py-2 bg-gray-900 text-white rounded-lg disabled:bg-gray-300"
+                  className="flex-1 py-2 bg-nf-red text-white rounded-lg disabled:bg-gray-300"
                 >
                   Add
                 </button>

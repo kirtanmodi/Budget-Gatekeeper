@@ -204,7 +204,7 @@ export function TransactionsPage() {
                   </div>
                   <button
                     onClick={() => handleSave(log.id)}
-                    className="px-3 py-2 text-sm bg-gray-900 text-white rounded-lg min-h-[44px]"
+                    className="px-3 py-2 text-sm bg-nf-red text-white rounded-lg min-h-[44px]"
                   >
                     Save
                   </button>

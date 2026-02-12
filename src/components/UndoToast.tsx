@@ -27,11 +27,11 @@ export function UndoToast({ message, onUndo, onDismiss, duration = 5000 }: UndoT
   };
 
   return (
-    <div className="fixed bottom-24 left-4 right-4 bg-gray-900 text-white rounded-lg p-4 flex items-center justify-between shadow-lg z-50">
+    <div className="fixed bottom-24 left-4 right-4 bg-gray-200 text-white rounded-lg p-4 flex items-center justify-between shadow-lg z-50">
       <span className="text-sm">{message}</span>
       <button
         onClick={handleUndo}
-        className="ml-4 px-3 py-1 text-sm font-medium bg-white text-gray-900 rounded active:bg-gray-200"
+        className="ml-4 px-3 py-1 text-sm font-medium bg-nf-red text-white rounded active:bg-nf-red-dark"
       >
         Undo
       </button>

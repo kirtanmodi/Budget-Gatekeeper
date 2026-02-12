@@ -192,7 +192,7 @@ export function ImportPage() {
               setTransactions([]);
               setImported(false);
             }}
-            className="px-6 py-3 bg-gray-900 text-white rounded-lg font-medium"
+            className="px-6 py-3 bg-nf-red text-white rounded-lg font-medium"
           >
             Import Another
           </button>
@@ -227,7 +227,7 @@ export function ImportPage() {
             <button
               onClick={() => handleParse(false)}
               disabled={parsing}
-              className="w-full py-4 bg-gray-900 text-white rounded-lg font-medium mb-4 disabled:bg-gray-300"
+              className="w-full py-4 bg-nf-red text-white rounded-lg font-medium mb-4 disabled:bg-gray-300"
             >
               {parsing ? 'Parsing...' : 'Parse Statement'}
             </button>
@@ -244,12 +244,12 @@ export function ImportPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your Customer ID"
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-nf-red"
                 />
                 <button
                   onClick={() => handleParse(true)}
                   disabled={parsing || !password}
-                  className="px-6 py-3 bg-gray-900 text-white rounded-lg font-medium disabled:bg-gray-300"
+                  className="px-6 py-3 bg-nf-red text-white rounded-lg font-medium disabled:bg-gray-300"
                 >
                   {parsing ? 'Parsing...' : 'Parse'}
                 </button>
@@ -301,7 +301,7 @@ export function ImportPage() {
                         onClick={() => setFilter(tab.key as FilterType)}
                         className={`px-3 py-2 text-sm rounded-full whitespace-nowrap min-h-[44px] ${
                           filter === tab.key
-                            ? 'bg-gray-900 text-white'
+                            ? 'bg-nf-red text-white'
                             : 'bg-gray-100 text-gray-600 active:bg-gray-200'
                         }`}
                       >
@@ -312,7 +312,7 @@ export function ImportPage() {
                   <select
                     value={sort}
                     onChange={(e) => setSort(e.target.value as SortType)}
-                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white min-h-[44px]"
+                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg bg-gray-100 min-h-[44px]"
                   >
                     <option value="date-desc">Date ↓</option>
                     <option value="date-asc">Date ↑</option>
@@ -327,7 +327,7 @@ export function ImportPage() {
                     <select
                       value={bulkCategory}
                       onChange={(e) => setBulkCategory(e.target.value)}
-                      className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white"
+                      className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg bg-gray-100"
                     >
                       <option value="">Set all uncategorized to...</option>
                       {categories.map((cat) => (
@@ -339,7 +339,7 @@ export function ImportPage() {
                     <button
                       onClick={handleBulkSetCategory}
                       disabled={!bulkCategory}
-                      className="px-4 py-2 text-sm bg-gray-900 text-white rounded-lg disabled:bg-gray-300 min-h-[44px] active:bg-gray-800"
+                      className="px-4 py-2 text-sm bg-nf-red text-white rounded-lg disabled:bg-gray-300 min-h-[44px] active:bg-nf-red-dark"
                     >
                       Apply
                     </button>
@@ -376,7 +376,7 @@ export function ImportPage() {
                                 : 'border-gray-200 bg-gray-100 opacity-60'
                               : tx.categoryId === null
                               ? 'border-orange-300 bg-orange-50'
-                              : 'border-gray-200 bg-white'
+                              : 'border-gray-200 bg-gray-100'
                           }`}
                         >
                           <div className="flex items-center justify-between mb-1">
@@ -422,7 +422,7 @@ export function ImportPage() {
                               onChange={(e) => handleCategoryChange(originalIndex, e.target.value)}
                               className={`w-full px-3 py-2 rounded-lg border text-sm ${
                                 tx.categoryId === null
-                                  ? 'border-orange-300 bg-white'
+                                  ? 'border-orange-300 bg-gray-100'
                                   : 'border-gray-200 bg-gray-50'
                               }`}
                             >
@@ -445,7 +445,7 @@ export function ImportPage() {
                 <button
                   onClick={handleImport}
                   disabled={!allCategorized || activeTransactions.length === 0}
-                  className="w-full py-4 bg-gray-900 text-white rounded-lg font-medium text-lg disabled:bg-gray-300"
+                  className="w-full py-4 bg-nf-red text-white rounded-lg font-medium text-lg disabled:bg-gray-300"
                 >
                   Import {activeTransactions.length} Transaction{activeTransactions.length !== 1 ? 's' : ''}
                 </button>

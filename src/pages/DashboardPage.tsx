@@ -186,7 +186,7 @@ export function DashboardPage() {
               key={category.id}
               type="button"
               onClick={() => handleCategoryClick(category.id)}
-              className="w-full bg-white border border-gray-200 rounded-lg p-4 text-left active:bg-gray-50"
+              className="w-full bg-gray-100 border border-gray-200 rounded-lg p-4 text-left active:bg-gray-50"
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">

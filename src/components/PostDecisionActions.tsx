@@ -17,7 +17,7 @@ export function PostDecisionActions({ onBought, onSkipped }: PostDecisionActions
       </button>
       <button
         onClick={onBought}
-        className="flex-1 py-4 text-lg font-semibold bg-gray-900 text-white rounded-xl active:bg-gray-800 min-h-[56px] flex items-center justify-center gap-2"
+        className="flex-1 py-4 text-lg font-semibold bg-nf-red text-white rounded-xl active:bg-nf-red-dark min-h-[56px] flex items-center justify-center gap-2"
       >
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />

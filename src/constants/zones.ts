@@ -7,7 +7,7 @@ export const zoneLabels: Record<Zone, string> = {
 };
 
 export const zoneStyles: Record<Zone, { badge: string; bar: string }> = {
-  FREE: { badge: 'bg-gray-200 text-gray-700', bar: 'bg-gray-400' },
+  FREE: { badge: 'bg-gray-300 text-gray-800', bar: 'bg-gray-400' },
   CONTROL: { badge: 'bg-yellow-100 text-yellow-800', bar: 'bg-yellow-500' },
   STOP: { badge: 'bg-red-100 text-red-800', bar: 'bg-red-500' },
 };

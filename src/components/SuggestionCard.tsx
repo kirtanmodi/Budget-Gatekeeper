@@ -80,7 +80,7 @@ export function SuggestionCard({ suggestion, onAction, onDismiss }: SuggestionCa
               {suggestion.action && onAction && (
                 <button
                   onClick={() => onAction(suggestion)}
-                  className="px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-md active:bg-gray-700 min-h-[44px]"
+                  className="px-3 py-2 text-sm font-medium text-white bg-nf-red rounded-md active:bg-nf-red-dark min-h-[44px]"
                 >
                   {suggestion.action.label}
                 </button>

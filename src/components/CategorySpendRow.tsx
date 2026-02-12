@@ -52,7 +52,7 @@ export function CategorySpendRow({ category, onSpentChange }: CategorySpendRowPr
           onChange={handleChange}
           onFocus={handleFocus}
           onBlur={handleBlur}
-          className="w-24 text-right text-lg font-medium py-2 px-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+          className="w-24 text-right text-lg font-medium py-2 px-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-nf-red focus:border-transparent"
         />
       </div>
     </div>

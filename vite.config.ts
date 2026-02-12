@@ -13,8 +13,8 @@ export default defineConfig({
         name: 'Budget Gatekeeper',
         short_name: 'Gatekeeper',
         description: 'Friction-based budgeting app that makes you think before spending',
-        theme_color: '#111827',
-        background_color: '#ffffff',
+        theme_color: '#141414',
+        background_color: '#141414',
         display: 'standalone',
         start_url: '/',
         icons: [

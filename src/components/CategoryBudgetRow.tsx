@@ -55,7 +55,7 @@ export function CategoryBudgetRow({ category, onBudgetChange, onRemove }: Catego
           onChange={handleChange}
           onFocus={handleFocus}
           onBlur={handleBlur}
-          className="w-20 text-right text-lg font-medium py-2 px-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+          className="w-20 text-right text-lg font-medium py-2 px-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-nf-red focus:border-transparent"
         />
         <button
           onClick={handleRemove}

@@ -117,7 +117,7 @@ export function ExpenseForm({
             onChange={handleAmountChange}
             placeholder="0"
             disabled={disabled}
-            className="w-full pl-10 pr-4 py-4 text-2xl border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent disabled:bg-gray-100"
+            className="w-full pl-10 pr-4 py-4 text-2xl border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-nf-red focus:border-transparent disabled:bg-gray-100"
           />
         </div>
         <div className="flex flex-wrap gap-2 mt-2">
@@ -149,7 +149,7 @@ export function ExpenseForm({
             onChange={handleDescriptionChange}
             placeholder="e.g., uber, pizza hut, groceries"
             disabled={disabled}
-            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent disabled:bg-gray-100"
+            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-nf-red focus:border-transparent disabled:bg-gray-100"
           />
           {suggestion && (
             <div className="absolute right-2 top-1/2 -translate-y-1/2">
@@ -183,7 +183,7 @@ export function ExpenseForm({
         <button
           type="submit"
           disabled={!isValid || disabled}
-          className="flex-1 py-4 text-lg font-semibold bg-gray-900 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed active:bg-gray-800 min-h-[56px]"
+          className="flex-1 py-4 text-lg font-semibold bg-nf-red text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed active:bg-nf-red-dark min-h-[56px]"
         >
           Check
         </button>

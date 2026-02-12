@@ -17,7 +17,7 @@ export function CategoryChip({ category, selected, onClick }: CategoryChipProps)
       onClick={onClick}
       className={`px-4 py-2 rounded-xl min-h-[44px] text-sm transition-all active:scale-95 ${
         selected
-          ? 'bg-gray-900 text-white shadow-lg shadow-gray-900/20'
+          ? 'bg-nf-red text-white shadow-lg shadow-nf-red/20'
           : isOver
           ? 'bg-red-50 text-red-700 active:bg-red-100'
           : 'bg-gray-100 text-gray-900 active:bg-gray-200'

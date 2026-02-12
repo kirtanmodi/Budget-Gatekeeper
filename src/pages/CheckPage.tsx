@@ -241,7 +241,7 @@ export function CheckPage() {
                 onClick={() => setShowNluMode(!showNluMode)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm min-h-[44px] ${
                   showNluMode
-                    ? 'bg-gray-900 text-white active:bg-gray-800'
+                    ? 'bg-nf-red text-white active:bg-nf-red-dark'
                     : 'bg-gray-100 text-gray-700 active:bg-gray-200'
                 }`}
               >
@@ -417,7 +417,7 @@ export function CheckPage() {
 
           <button
             onClick={resetFlow}
-            className="w-full py-4 bg-gray-900 text-white rounded-xl font-medium text-lg active:bg-gray-800 min-h-[56px]"
+            className="w-full py-4 bg-nf-red text-white rounded-xl font-medium text-lg active:bg-nf-red-dark min-h-[56px]"
           >
             Check Another
           </button>
@@ -425,7 +425,7 @@ export function CheckPage() {
       )}
 
       {showSkipToast && (
-        <div className="fixed bottom-24 left-4 right-4 bg-gray-700 text-white rounded-lg p-4 flex items-center gap-3 shadow-lg z-50 animate-fade-in">
+        <div className="fixed bottom-24 left-4 right-4 bg-gray-200 text-white rounded-lg p-4 flex items-center gap-3 shadow-lg z-50 animate-fade-in">
           <svg className="w-5 h-5 text-gray-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
