@@ -166,7 +166,7 @@ export function SettingsPage() {
             max="80"
             value={graceThreshold * 100}
             onChange={(e) => handleGraceThresholdChange(parseInt(e.target.value) / 100)}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-900"
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-nf-red"
           />
           <p className="text-xs text-gray-500 mt-3">
             Spending below {Math.round(graceThreshold * 100)}% of your budget auto-approves without pace checks.
@@ -187,7 +187,7 @@ export function SettingsPage() {
               type="checkbox"
               checked={settings?.enableSmartCategorization ?? false}
               onChange={(e) => dispatch(updateAiSettings({ enableSmartCategorization: e.target.checked }))}
-              className="w-5 h-5 rounded accent-gray-900"
+              className="w-5 h-5 rounded accent-nf-red"
             />
           </label>
 
@@ -200,7 +200,7 @@ export function SettingsPage() {
               type="checkbox"
               checked={settings?.enablePredictiveAlerts ?? false}
               onChange={(e) => dispatch(updateAiSettings({ enablePredictiveAlerts: e.target.checked }))}
-              className="w-5 h-5 rounded accent-gray-900"
+              className="w-5 h-5 rounded accent-nf-red"
             />
           </label>
 
@@ -213,7 +213,7 @@ export function SettingsPage() {
               type="checkbox"
               checked={settings?.enableNluInput ?? false}
               onChange={(e) => dispatch(updateAiSettings({ enableNluInput: e.target.checked }))}
-              className="w-5 h-5 rounded accent-gray-900"
+              className="w-5 h-5 rounded accent-nf-red"
             />
           </label>
 
@@ -226,7 +226,7 @@ export function SettingsPage() {
               type="checkbox"
               checked={settings?.enablePersonalizedThresholds ?? false}
               onChange={(e) => dispatch(updateAiSettings({ enablePersonalizedThresholds: e.target.checked }))}
-              className="w-5 h-5 rounded accent-gray-900"
+              className="w-5 h-5 rounded accent-nf-red"
             />
           </label>
         </div>
@@ -295,7 +295,7 @@ export function SettingsPage() {
                     max="80"
                     value={currentThreshold * 100}
                     onChange={(e) => handleCategoryThresholdChange(category.id, parseInt(e.target.value) / 100)}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-900"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-nf-red"
                   />
                   {isCustom && (
                     <button
